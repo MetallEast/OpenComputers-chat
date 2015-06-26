@@ -21,5 +21,5 @@ Everything else is at your discretion.<br />
 <h3>Client<br /></h3>
 
 The client computer must have at least one wireless card.<br />
-After logging the client receives primary level port from the server. (chat port)
-"/exit" used to exit from chat.
+After logging the client receives primary level port from the server. (chat port)<br />
+"/exit" used to exit from chat.<br />
