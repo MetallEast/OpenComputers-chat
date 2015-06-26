@@ -5,12 +5,11 @@ local term = require("term")
 local text = require("text")
 local serialization = require("serialization")
 local event = require("event")
+local unicode = require("unicode")
 local modem = component.modem
 local gpu = component.gpu
 
-local registrationLevel   = "9f54fd85-eec4-4d75-8830-0924570d54bc"
-local authenticationLevel = "9ed56ccb-b4c4-4dba-bb2d-50dccb844942"			
-local primaryLevel	  = "79c5fa93-e6bd-4e97-80cc-193c4b6a1898"
+local serverAddress = "596f1d35-8939-4406-9f1d-a22cf9d31c76"
 local primaryPort
 local myMessage
 local A, B
@@ -20,7 +19,7 @@ function Authentication()
 	term.write("Имя пользователя: ")
 	local nickname = text.trim(term.read())
 	term.write("Пароль: ")
-	local password = text.trim(term.read())
+	local password = text.trim(term.read(nil, true, nil, "*"))
 	
 	local user = {}
 	user[1] = nickname
@@ -28,14 +27,19 @@ function Authentication()
 	
 	local packet = serialization.serialize(user)
 	modem.open(256)
-	modem.send(authenticationLevel, 256, packet)
-	local _, _, address, _, _, message = event.pull("modem_message")
+	modem.send(serverAddress, 256, packet)
+	
+	local _, _, address, _, _, message
+	while address ~= serverAddress do
+		_, _, address, _, _, message = event.pull("modem_message")
+	end
 	modem.close(256)
 	if type(message) == "number" then 
 		name = nickname
-		return message
+		return message -- 1&
 	else 
 		print(message)
+		os.sleep(0.5)
 		event.pull("key_up")
 		term.clear()
 		return 0
@@ -49,19 +53,18 @@ function Registration()
 	term.write("Имя пользователя: ")
 	local nickname = text.trim(term.read())
 	term.write("Пароль: ")
-	local password = text.trim(term.read())
+	local password = text.trim(term.read(nil, true, nil, "*"))
 	term.write("Повторите пароль: ")
-	local repetition = text.trim(term.read())
-	if password ~= repetition or string.len(password) < 3 or string.len(password) > 10 then 
-		term.write("\nПароль должен быть в диапазоне от 3 до 10 символов")
+	local repetition = text.trim(term.read(nil, true, nil, "*"))
+	if password ~= repetition then 
 		term.write("\nЗначения полей 'Пароль' и 'Повтор пароля' должны совпадать")
-		os.sleep(1)
+		os.sleep(0.5)
 	else 
 		user[1] = nickname
 		user[2] = password
 		local packet = serialization.serialize(user)
 		modem.open(255)
-		modem.send(registrationLevel, 255, packet)
+		modem.send(serverAddress, 255, packet)
 		_, _, _, _, _, message = event.pull("modem_message")
 		modem.close(255)
 		if type(message) == "number" then
@@ -81,7 +84,7 @@ function Choice()
 	while true do
 		print("1. Войти в чат")
 		print("2. Регистрация")
-		print("3. Выход")
+		print("3. Выход\n")
 		choice = text.trim(term.read(nil, false))
 		term.clear()
 		if choice == "1" then 
@@ -100,7 +103,7 @@ function Receiver()
 	local x, y		
 	local _, _, address, _, _, message
 	while true do
-		while address ~= primaryLevel do
+		while address ~= serverAddress do
 			_, _, address, _, _, message = event.pull("modem_message")
 		end
 		address = nil
@@ -119,15 +122,17 @@ end
 
 function Sender()
 	local result
-	local ddot = ": "
 	while true do 
 		myMessage = term.read(nil, false)
 		result = text.trim(myMessage)
 		result = text.detab(result, 1)
-		if result == "exit" then return 0 end
-		if result ~= "" and string.len(myMessage) < 256 then 
-			myMessage = string.format("%s%s%s", name, ddot, myMessage)
-			modem.send(primaryLevel, primaryPort, myMessage) 
+		if result == "exit" then 
+			term.clear()
+			return 0 
+		end
+		if result ~= "" and unicode.len(myMessage) < 128 then 
+			myMessage = string.format("%s: %s", name, myMessage)
+			modem.send(serverAddress, primaryPort, myMessage) 
 		end
 		term.clearLine()
 	end
