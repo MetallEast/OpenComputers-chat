@@ -11,16 +11,15 @@ A separate thread for each level.<br />
 2. Authentication Level.  Registered users login here.<br />
 3. Primary Level.         Actually the chat.<br />
 
+<i><b>Note</b>: User names and passwords stored in a "users" file.</i>
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i>
 
 **Configuration**<br />
-The server must be set three wireless card. One card for each level.<br />
+The server must be set at least wireless card.<br />
 Everything else is at your discretion.<br />
-
-<i><b>Note</b>: string.len(s) returns the length of a string s in bytes.<br />
-russian letter - 2 bytes, english letter and ASCII symbols - 1 byte.</i>
 
 <h3>Client<br /></h3>
 
 The client computer must have at least one wireless card.<br />
 After logging the client receives primary level port from the server. (chat port)
+"/exit" used to exit from chat.
