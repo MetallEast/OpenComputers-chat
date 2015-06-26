@@ -11,7 +11,7 @@ A separate thread for each level.<br />
 2. Authentication Level.  Registered users login here.<br />
 3. Primary Level.         Actually the chat.<br />
 
-<i><b>Note</b>: User names and passwords stored in a "users" file.</i>
+<i><b>Note</b>: User names and passwords stored in a "users" file.</i><br />
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i>
 
 **Configuration**<br />
