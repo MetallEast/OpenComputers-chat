@@ -15,39 +15,8 @@ local myMessage
 local A, B
 local name
 
-function Authentication()
-	term.write("Имя пользователя: ")
-	local nickname = text.trim(term.read())
-	term.write("Пароль: ")
-	local password = text.trim(term.read(nil, true, nil, "*"))
-	
-	local user = {}
-	user[1] = nickname
-	user[2] = password
-	
-	local packet = serialization.serialize(user)
-	modem.open(256)
-	modem.send(serverAddress, 256, packet)
-	
-	local _, _, address, _, _, message
-	while address ~= serverAddress do
-		_, _, address, _, _, message = event.pull("modem_message")
-	end
-	modem.close(256)
-	if type(message) == "number" then 
-		name = nickname
-		return message -- 1&
-	else 
-		print(message)
-		os.sleep(0.5)
-		event.pull("key_up")
-		term.clear()
-		return 0
-	end
-end
-
 function Registration()
-	local _, _, _, _, _, message
+	local _, _, address, _, _, message
 	local user = {}
 	term.clear()
 	term.write("Имя пользователя: ")
@@ -65,7 +34,9 @@ function Registration()
 		local packet = serialization.serialize(user)
 		modem.open(255)
 		modem.send(serverAddress, 255, packet)
-		_, _, _, _, _, message = event.pull("modem_message")
+		while address ~= serverAddress do
+			_, _, address, _, _, message = event.pull("modem_message")
+		end
 		modem.close(255)
 		if type(message) == "number" then
 			term.clear()
@@ -76,6 +47,34 @@ function Registration()
 	end
 	event.pull("key_up")
 	term.clear()
+end
+
+function Authentication()
+	term.write("Имя пользователя: ")
+	local nickname = text.trim(term.read())
+	term.write("Пароль: ")
+	local password = text.trim(term.read(nil, true, nil, "*"))
+	local user = {}
+	user[1] = nickname
+	user[2] = password
+	local packet = serialization.serialize(user)
+	modem.open(256)
+	modem.send(serverAddress, 256, packet)
+	local _, _, address, _, _, message
+	while address ~= serverAddress do
+		_, _, address, _, _, message = event.pull("modem_message")
+	end
+	modem.close(256)
+	if type(message) == "number" then 
+		name = nickname
+		return message -- 1&
+	else 
+		print(message)
+		os.sleep(0.5)
+		event.pull("key_up")
+		term.clear()
+		return 0
+	end
 end
 
 function Choice()
@@ -138,19 +137,44 @@ function Sender()
 	end
 end
 
+function CheckConnection()
+	local serverOn = false
+	term.clear()
+	term.write("Соединение...")
+	modem.open(254)
+	for try = 1, 3 do
+		modem.send(serverAddress, 254, 1)
+		local _, _, address, _, _, _ = event.pull(3, "modem_message")
+		if address == serverAddress then 
+			serverOn = true
+			break
+		end
+	end
+	modem.close(254)
+	term.clear()
+	if serverOn == true then return 1 end
+	return 0
+end
+
 
 modem.setStrength(5000)
-local choiceResult = Choice()
-if choiceResult ~= 0 then 
-	primaryPort = choiceResult
-	modem.open(primaryPort)
-	A, B = gpu.getResolution()
+if CheckConnection() == 1 then
+	local choiceResult = Choice()
+	if choiceResult ~= 0 then 
+		primaryPort = choiceResult
+		modem.open(primaryPort)
+		A, B = gpu.getResolution()
+		term.clear()
+		term.setCursor(1, B - 1)
+		thread.init()
+		local handler = thread.create(Receiver)
+		Sender()
+		modem.close(choiceResult)
+		thread.kill(handler)
+		thread.waitForAll()
+	end
+else
+	print("Сервер недоступен")
+	event.pull("key_up")
 	term.clear()
-	term.setCursor(1, B - 1)
-	thread.init()
-	local handler = thread.create(Receiver)
-	Sender()
-	modem.close(choiceResult)
-	thread.kill(handler)
-	thread.waitForAll()
 end
