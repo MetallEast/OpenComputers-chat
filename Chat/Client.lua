@@ -1,10 +1,10 @@
 ﻿local thread = require("thread")
 local computer = require("computer")
 local component = require("component")
-local term = require("term")
-local text = require("text")
-local serialization = require("serialization")
 local event = require("event")
+local serialization = require("serialization")
+local text = require("text")
+local term = require("term")
 local unicode = require("unicode")
 local modem = component.modem
 local gpu = component.gpu
@@ -67,7 +67,7 @@ function Authentication()
 	modem.close(256)
 	if type(message) == "number" then 
 		name = nickname
-		return message -- 1&
+		return message 
 	else 
 		print(message)
 		os.sleep(0.5)
@@ -129,7 +129,7 @@ function Sender()
 			term.clear()
 			return 0 
 		end
-		if result ~= "" and unicode.len(myMessage) < 128 then 
+		if result ~= "" then 
 			myMessage = string.format("%s: %s", name, myMessage)
 			modem.send(serverAddress, primaryPort, myMessage) 
 		end
@@ -169,7 +169,7 @@ if CheckConnection() == 1 then
 		thread.init()
 		local handler = thread.create(Receiver)
 		Sender()
-		modem.close(choiceResult)
+		modem.close(primaryPort)
 		thread.kill(handler)
 		thread.waitForAll()
 	end
