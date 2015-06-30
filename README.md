@@ -26,5 +26,5 @@ After logging the client receives primary level port from the server. (chat port
 
 
 <b>Remark</b>: thread.lua code is written by Zer0Galaxy<br/>
-        Code: [thread.lua](http://pastebin.com/32S4HssH)<br/>
-        Topic: [Link](http://computercraft.ru/topic/393-esche-odin-podkhod-k-mnogopotochnosti-v-computercraft/)<br/>
+        Code: [thread.lua](http://pastebin.com/E0SzJcCx)<br/>
+        Topic: [Link](http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/)<br/>
