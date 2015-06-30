@@ -1,19 +1,19 @@
-﻿local thread = require("thread")
+local thread = require("thread")
 local computer = require("computer")
 local component = require("component")
 local event = require("event")
 local serialization = require("serialization")
 local text = require("text")
 local term = require("term")
-local unicode = require("unicode")
 local modem = component.modem
 local gpu = component.gpu
 
-local serverAddress = "596f1d35-8939-4406-9f1d-a22cf9d31c76"
+local serverAddress = "7bd34253-9437-47f8-8ab7-c2f14956ddd9"
 local primaryPort
 local myMessage
 local A, B
 local name
+local online = 1
 
 function Registration()
 	local _, _, address, _, _, message
@@ -41,9 +41,7 @@ function Registration()
 		if type(message) == "number" then
 			term.clear()
 			print("Регистрация завершена")
-		else 
-			print(message) 
-		end
+		else print(message) end
 	end
 	event.pull("key_up")
 	term.clear()
@@ -100,29 +98,38 @@ end
 
 function Receiver()
 	local x, y		
-	local _, _, address, _, _, message
+	local _, _, address, port, _, message
 	while true do
-		while address ~= serverAddress do
-			_, _, address, _, _, message = event.pull("modem_message")
+		_, _, address, port, _, message = event.pull("modem_message")
+		if address == serverAddress then
+			address = nil
+			if port == 253 then
+				if message == 666 then modem.send(serverAddress, 253, 1)
+				else online = message end
+			else
+				x, y = term.getCursor()
+				term.setCursor(1, B - 5)
+				print(text.trim(message))
+				term.setCursor(A, B)
+				term.write(' ', true)
+				gpu.copy(1, B - 2, A, 3, 0, 1)
+				term.setCursor(1, B - 3)
+				term.clearLine()
+				term.setCursor(1, B - 2)
+				term.clearLine()
+				term.write("Online: " .. online)
+				term.setCursor(x, B - 1)
+				if message ~= myMessage then computer.beep(1000, 0.1) end
+			end
 		end
-		address = nil
-		x, y = term.getCursor()
-		term.setCursor(1, B - 5)
-		print(text.trim(message))
-		term.setCursor(A, B)
-		term.write(' ', true)
-		gpu.copy(1, B - 2, A, 3, 0, 1)
-		term.setCursor(1, B - 2)
-		term.clearLine()
-		term.setCursor(x, B - 1)
-		if message ~= myMessage then computer.beep(1000, 0.1) end
 	end
 end
 
 function Sender()
 	local result
+	local history = {}
 	while true do 
-		myMessage = term.read(nil, false)
+		myMessage = term.read(history, false)
 		result = text.trim(myMessage)
 		result = text.detab(result, 1)
 		if result == "exit" then 
@@ -130,10 +137,11 @@ function Sender()
 			return 0 
 		end
 		if result ~= "" then 
-			myMessage = string.format("%s: %s", name, myMessage)
+			myMessage = name .. ": " .. myMessage
 			modem.send(serverAddress, primaryPort, myMessage) 
 		end
 		term.clearLine()
+		if #history > 5 then table.remove(history, 1) end
 	end
 end
 
@@ -163,13 +171,14 @@ if CheckConnection() == 1 then
 	if choiceResult ~= 0 then 
 		primaryPort = choiceResult
 		modem.open(primaryPort)
+		modem.open(253)
 		A, B = gpu.getResolution()
 		term.clear()
 		term.setCursor(1, B - 1)
 		thread.init()
 		local handler = thread.create(Receiver)
 		Sender()
-		modem.close(primaryPort)
+		modem.close()
 		thread.kill(handler)
 		thread.waitForAll()
 	end
