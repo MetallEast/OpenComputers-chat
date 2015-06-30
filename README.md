@@ -1,6 +1,5 @@
 # OpenComputers-chat
 
-By the way: [thread.lua](http://computercraft.ru/topic/393-esche-odin-podkhod-k-mnogopotochnosti-v-computercraft/) code is written by Zer0Galaxy
 
 <h3>Server<br /></h3>
 Server type: Serial.<br />
@@ -10,9 +9,8 @@ Each level is broadcasting only in its own separate port.<br/>
 1. Registration Level.    Registration of new users is going on here.<br/>
 2. Authentication Level.  Registered users login here.<br/>
 3. Primary Level.         Actually the chat.<br/>
-Ping Port: 254.            Checks the availability of the server.<br/>
 
-<i><b>Note</b>: User names and passwords stored in a "users" file.</i><br />
+<i><b>Note</b>: User names and passwords stored in a "users" file.</i><br/>
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i>
 
 **Configuration**<br/>
@@ -25,3 +23,8 @@ The client computer must have at least one wireless card.<br/>
 When the chat starts the first thing checked connection to the server<br/>
 After logging the client receives primary level port from the server. (chat port)<br/>
 "exit" command used to exit from chat.<br/>
+
+
+<b>Remark</b>: thread.lua code is written by Zer0Galaxy<br/>
+        Code: [thread.lua](http://pastebin.com/32S4HssH)<br/>
+        Topic: [Link](http://computercraft.ru/topic/393-esche-odin-podkhod-k-mnogopotochnosti-v-computercraft/)<br/>
