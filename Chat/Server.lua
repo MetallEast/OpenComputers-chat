@@ -24,7 +24,7 @@ function Manager()
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
 		elseif	port == 254 then modem.send(address, 254, 1) end
-		print(address .. port .. message)
+		print(address .. ':' .. port .. '\n' .. message)
 	end
 	modem.close()
 end
@@ -45,27 +45,26 @@ function PingUsers()
 end	
 
 function RegistrationLevel(address, message)
-	local file, line
 	local user = serialization.unserialize(message)
 	if 	unicode.len(user[1]) < 3 or unicode.len(user[1]) > 15  or
 		unicode.len(user[2]) < 3 or unicode.len(user[2]) > 10  then
 			modem.send(address, 255, "Имя должно быть от 3 до 15 символов\nПароль должен быть от 3 до 10 символов")
 	else
-		file = io.open("users", "a")
+		local line
+		local file = io.open("users", "ab")
 		io.output(file)
 		while true do
-			line = file:read()
-			file:read()
+			line = file:read() file:read()
 			if user[1] == line then
 				modem.send(address, 255, "Пользователь с таким именем уже существует")
 				break
 			end		
 			if line == nil then
-				local newUser = string.format("%s\n%s\n", user[1], user[2])
+				local newUser = string.format("%s\n%s\n", user[1], user[2]) 
 				io.input(file)
-				file:seek("end")
+				file:seek("end", 0)
 				file:write(newUser)
-				modem.send(address, 255, 1)		
+				modem.send(address, 255, 1)				
 				break
 			end 	
 		end
