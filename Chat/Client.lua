@@ -78,22 +78,22 @@ function Authentication()
 end
 
 function Choice()
-	local choice
+	local _,_,_,choice
 	local authResult
 	while true do
 		print("1. Войти в чат")
 		print("2. Регистрация")
 		print("3. Выход\n")
-		choice = text.trim(term.read(nil, false))
+		_, _, _, choice = event.pull("key_up") 
 		term.clear()
-		if choice == "1" then 
+		if choice == 2 then 
 			authResult = Authentication() 
 			if authResult ~= 0 then
 				return authResult		
 			end
 		end
-		if choice == "2" then Registration() end
-		if choice == "3" then break end
+		if choice == 3 then Registration() end
+		if choice == 4 then break end
 	end
 	return 0
 end
@@ -113,9 +113,10 @@ function Receiver()
 				term.setCursor(1, B - 5)
 				if message == 'R' then 
 					print("[Server] Restarting...")
+					thread.kill(sHandler)
+					term.setCursorBlink(false)
 					os.sleep(3) 
 					term.clear()
-					thread.kill(sHandler)
 					break
 				else
 					print(text.trim(message))
