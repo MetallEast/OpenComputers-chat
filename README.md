@@ -2,7 +2,7 @@
 
 
 <h3>Server<br /></h3>
-Server type: Serial.<br />
+Server type: Parallel<br />
 Consists of three levels.<br />
 Each level is broadcasting only in its own separate port.<br/>
 
@@ -12,6 +12,7 @@ Each level is broadcasting only in its own separate port.<br/>
 
 <i><b>Note</b>: User names and passwords stored in a "users" file.</i><br/>
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i>
+<i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side
 
 **Configuration**<br/>
 The server must be set at least wireless card.<br/>
@@ -25,6 +26,5 @@ After logging the client receives primary level port from the server. (chat port
 "exit" command used to exit from chat.<br/>
 
 
-<b>Remark</b>: thread.lua code is written by Zer0Galaxy<br/>
-        Code: [thread.lua](http://pastebin.com/E0SzJcCx)<br/>
-        Topic: [Link](http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/)<br/>
+<b>Remark</b>: thread.lua code is written by [Zer0Galaxy](http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/)<br/>
+Code: [thread.lua](http://pastebin.com/E0SzJcCx)<br/>
