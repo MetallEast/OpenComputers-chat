@@ -7,12 +7,13 @@ local term = require("term")
 local unicode = require("unicode")
 local modem = component.proxy("7bd34253-9437-47f8-8ab7-c2f14956ddd9")
 local primaryPort = math.random(512, 1024)
+local restart = false
 
 function Log(address, port, message)
 	local log = io.open("log", "ab")
 	io.input(log)
-	log:seek("end", 0)	
-	log:write(address .. ':' .. port .. '\n' .. message)
+	log:seek("end")	
+	log:write('\n' .. address .. ':' .. port .. '\n' .. message)
 	log:close(log)
 end
 
@@ -69,10 +70,10 @@ function RegistrationLevel(address, message)
 				break
 			end		
 			if line == nil then
-				local newUser = string.format("%s\n%s\n", user[1], user[2]) 
 				io.input(file)
-				file:seek("end", 0)
-				file:write(newUser)
+				local c = file:seek("end")
+				if c ~= 0 then file:write('\n' .. user[1] .. '\n' .. user[2])
+				else file:write(user[1] .. '\n' .. user[2]) end
 				modem.send(address, 255, 1)				
 				break
 			end 	
@@ -96,7 +97,7 @@ function AuthenticationLevel(address, message)
 				modem.broadcast(primaryPort, user[1] .. " присоединился к чату")
 			else modem.send(address, 256, "Неверный пароль") end
 			break
-		end		
+		else line = file:read() end
 		if line == nil then 	
 			modem.send(address, 256, "Пользователя с таким именем не существует")
 			break
@@ -118,7 +119,9 @@ function Administration()
 	while true do
 		command = term.read()
 		command = text.trim(command)
-		if command == "restart" then modem.broadcast(primaryPort, 'R') break
+		if command == "restart" then restart = true
+			modem.broadcast(primaryPort, 'R') break end
+		if command == "close" then break
 		else modem.broadcast(primaryPort, string.format("[Server] %s", command)) end 
 	end
 end
@@ -131,4 +134,4 @@ Administration()
 thread.killAll()
 thread.waitForAll()
 modem.close()
-os.execute("reboot")
+if restart == true then os.execute("reboot") end
