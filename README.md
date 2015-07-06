@@ -12,7 +12,7 @@ Each level is broadcasting only in its own separate port.<br/>
 
 <i><b>Note</b>: User names and passwords stored in a "users" file.</i><br/>
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i>
-<i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side
+<i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side<br/>
 
 **Configuration**<br/>
 The server must be set at least wireless card.<br/>
