@@ -18,6 +18,11 @@ Each level is broadcasting only in its own separate port.<br/>
 The server must be set at least wireless card.<br/>
 Everything else is at your discretion.<br/>
 
+<ins>Server commands</ins><br/>
+<i>restart</i> - forced restart.<br/>
+<i>close</i> - сlose server immediately.<br/>
+<i>[message]</i> - broadcast message with tag [Server].<br/>
+
 <h3>Client<br/></h3>
 
 The client computer must have at least one wireless card.<br/>
