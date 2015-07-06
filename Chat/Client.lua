@@ -5,6 +5,7 @@ local event = require("event")
 local serialization = require("serialization")
 local text = require("text")
 local term = require("term")
+local unicode = require("unicode")
 local modem = component.modem
 local gpu = component.gpu
 
@@ -14,6 +15,7 @@ local myMessage
 local A, B
 local name
 local online = 1
+local sHandler, rHandler
 
 function Registration()
 	local _, _, address, _, _, message
@@ -104,22 +106,30 @@ function Receiver()
 		if address == serverAddress then
 			address = nil
 			if port == 253 then
-				if message == 666 then modem.send(serverAddress, 253, 1)
+				if message == 'P' then modem.send(serverAddress, 253, 1)
 				else online = message end
 			else
 				x, y = term.getCursor()
 				term.setCursor(1, B - 5)
-				print(text.trim(message))
-				term.setCursor(A, B)
-				term.write(' ', true)
-				gpu.copy(1, B - 2, A, 3, 0, 1)
-				term.setCursor(1, B - 3)
-				term.clearLine()
-				term.setCursor(1, B - 2)
-				term.clearLine()
-				term.write("Online: " .. online)
-				term.setCursor(x, B - 1)
-				if message ~= myMessage then computer.beep(1000, 0.1) end
+				if message == 'R' then 
+					print("[Server] Restarting...")
+					os.sleep(3) 
+					term.clear()
+					thread.kill(sHandler)
+					break
+				else
+					print(text.trim(message))
+					term.setCursor(A, B)
+					term.write(' ', true)
+					gpu.copy(1, B - 2, A, 3, 0, 1)
+					term.setCursor(1, B - 3)
+					term.clearLine()
+					term.setCursor(1, B - 2)
+					term.clearLine()
+					term.write("Online: " .. online)
+					term.setCursor(x, B - 1)
+					if message ~= myMessage then computer.beep(1000, 0.1) end
+				end
 			end
 		end
 	end
@@ -134,11 +144,12 @@ function Sender()
 		result = text.detab(result, 1)
 		if result == "exit" then 
 			term.clear()
-			return 0 
+			thread.kill(rHandler)
+			break
 		end
-		if result ~= "" then 
+		if unicode.len(result) > 1 then 
 			myMessage = name .. ": " .. myMessage
-			modem.send(serverAddress, primaryPort, myMessage) 
+			modem.send(serverAddress, primaryPort, myMessage)
 		end
 		term.clearLine()
 		if #history > 5 then table.remove(history, 1) end
@@ -176,11 +187,10 @@ if CheckConnection() == 1 then
 		term.clear()
 		term.setCursor(1, B - 1)
 		thread.init()
-		local handler = thread.create(Receiver)
-		Sender()
-		modem.close()
-		thread.kill(handler)
+		rHandler = thread.create(Receiver)
+		sHandler = thread.create(Sender)
 		thread.waitForAll()
+		modem.close()
 	end
 else
 	print("Сервер недоступен")
