@@ -11,7 +11,7 @@ Each level is broadcasting only in its own separate port.<br/>
 3. Primary Level.         Actually the chat.<br/>
 
 <i><b>Note</b>: User names and passwords stored in a "users" file.</i><br/>
-<i><b>Note</b>: Primary level has a random port each new uptime cycle.</i>
+<i><b>Note</b>: Primary level has a random port each new uptime cycle.</i><br/>
 <i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side<br/>
 
 **Configuration**<br/>
