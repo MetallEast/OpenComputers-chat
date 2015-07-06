@@ -3,9 +3,18 @@ local component = require("component")
 local event = require("event")
 local serialization = require("serialization")
 local text = require("text")
+local term = require("term")
 local unicode = require("unicode")
 local modem = component.proxy("7bd34253-9437-47f8-8ab7-c2f14956ddd9")
 local primaryPort = math.random(512, 1024)
+
+function Log(address, port, message)
+	local log = io.open("log", "ab")
+	io.input(log)
+	log:seek("end", 0)	
+	log:write(address .. ':' .. port .. '\n' .. message)
+	log:close(log)
+end
 
 function ModemSettings()
 	modem.open(253)
@@ -24,22 +33,22 @@ function Manager()
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
 		elseif	port == 254 then modem.send(address, 254, 1) end
-		print(address .. ':' .. port .. '\n' .. message)
+		Log(address, port, message)
 	end
-	modem.close()
 end
 
 function PingUsers()
 	while true do
 		local online = 0
 		local _, _, address, port, _, _
-		event.pull(30, "waiting")
-		modem.broadcast(253, 666)
+		event.pull(17, "waiting")
+		modem.broadcast(253, 'P')
 		while true do
-			_, _, address, port, _, _ = event.pull(1, "modem_message")
+			_, _, address, port, _, _ = event.pull(3, "modem_message")
 			if port == nil then break end
 			if port == 253 then online = online + 1 end
 		end
+		if online == 0 then online = 1 end
 		modem.broadcast(253, online)
 	end
 end	
@@ -97,17 +106,29 @@ function AuthenticationLevel(address, message)
 end
 
 function PrimaryLevel(message)
-	local check
+	local check, nicklen, mlen
 	check = text.trim(message)
-	if check ~= "" and string.len(message) < 128 then
-		modem.broadcast(primaryPort, message)
+	nicklen = string.find(check, ':')
+	mlen = unicode.len(message) - nicklen - 2
+	if mlen > 1 then modem.broadcast(primaryPort, message) end
+end
+	
+function Administration()
+	local command 
+	while true do
+		command = term.read()
+		command = text.trim(command)
+		if command == "restart" then modem.broadcast(primaryPort, 'R') break
+		else modem.broadcast(primaryPort, string.format("[Server] %s", command)) end 
 	end
 end
 	
-	
 thread.init()			
 ModemSettings()
-local handler = thread.create(PingUsers)
-Manager()
-thread.kill(handler)
+thread.create(PingUsers)
+thread.create(Manager)
+Administration()
+thread.killAll()
 thread.waitForAll()
+modem.close()
+os.execute("reboot")
