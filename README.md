@@ -12,7 +12,7 @@ Each level is broadcasting only in its own separate port.<br/>
 
 <i><b>Note</b>: User names and passwords stored in a "users" file.</i><br/>
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i><br/>
-<i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side<br/>
+<i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side</i><br/>
 
 **Configuration**<br/>
 The server must be set at least wireless card.<br/>
@@ -31,5 +31,4 @@ After logging the client receives primary level port from the server. (chat port
 "exit" command used to exit from chat.<br/>
 
 
-<b>Remark</b>: thread.lua code is written by [Zer0Galaxy](http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/)<br/>
-Code: [thread.lua](http://pastebin.com/E0SzJcCx)<br/>
+<b>Remark</b>: <i>serverAddress</i> variable must match with proxy on the server side.
