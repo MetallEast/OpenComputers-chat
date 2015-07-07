@@ -58,34 +58,43 @@ function RegistrationLevel(address, message)
 	local user = serialization.unserialize(message)
 	if 	unicode.len(user[1]) < 3 or unicode.len(user[1]) > 15  or
 		unicode.len(user[2]) < 3 or unicode.len(user[2]) > 10  then
-			modem.send(address, 255, "Имя должно быть от 3 до 15 символов\nПароль должен быть от 3 до 10 символов")
-	else
-		local line
-		local file = io.open("users", "ab")
-		io.output(file)
-		while true do
-			line = file:read() file:read()
-			if user[1] == line then
-				modem.send(address, 255, "Пользователь с таким именем уже существует")
-				break
-			end		
-			if line == nil then
-				io.input(file)
-				local c = file:seek("end")
-				if c ~= 0 then file:write('\n' .. user[1] .. '\n' .. user[2])
-				else file:write(user[1] .. '\n' .. user[2]) end
-				modem.send(address, 255, 1)				
-				break
-			end 	
+		modem.send(address, 255, "Имя должно быть от 3 до 15 символов\nПароль должен быть от 3 до 10 символов")
+	else if string.find(user[1], "[%p%c%d]") ~= nil then
+		modem.send(address, 255, "Имя содержит запрещенные символы")
+		else
+			local line
+			local file = io.open("users", "rb")
+			io.output(file)
+			while true do
+				line = file:read()
+				if user[1] == line then
+					modem.send(address, 255, "Пользователь с таким именем уже существует")
+					break end		
+				file:read()
+				line = file:read()
+				if line == address then 
+					modem.send(address, 255, "С Вашего адреса уже зарегестрирован пользователь")
+					break end
+				if line == nil then
+					file:close(file)
+					file = io.open("users", "ab")
+					io.input(file)
+					local c = file:seek("end")
+					if c ~= 0 then file:write(string.format("\n%s\n%s\n%s", user[1], user[2], address))
+					else file:write(string.format("%s\n%s\n%s", user[1], user[2], address)) end
+					modem.send(address, 255, 1)				
+					break
+				end 	
+			end
+			file:close(file)
 		end
-		file:close(file)
 	end
 end
 
 function AuthenticationLevel(address, message)
 	local line
 	local user = serialization.unserialize(message)
-	local file = io.open("users", "r")
+	local file = io.open("users", "rb")
 	io.output(file)
 	file:seek("set")
 	while true do
@@ -97,7 +106,7 @@ function AuthenticationLevel(address, message)
 				modem.broadcast(primaryPort, user[1] .. " присоединился к чату")
 			else modem.send(address, 256, "Неверный пароль") end
 			break
-		else line = file:read() end
+		else file:read() file:read() end
 		if line == nil then 	
 			modem.send(address, 256, "Пользователя с таким именем не существует")
 			break
