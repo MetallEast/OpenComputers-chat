@@ -1,3 +1,7 @@
+-- thread.lua code is written by Zer0Galaxy
+-- Topic: http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/
+-- Code:  http://pastebin.com/E0SzJcCx
+
 local thread = require("thread")
 local computer = require("computer")
 local component = require("component")
