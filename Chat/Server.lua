@@ -10,7 +10,7 @@ local primaryPort = math.random(512, 1024)
 local restart = false
 
 function Log(address, port, message)
-	local log = io.open("log", "ab")
+	local log = io.open("log", "wb")
 	io.input(log)
 	log:seek("end")	
 	log:write('\n' .. address .. ':' .. port .. '\n' .. message)
