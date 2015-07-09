@@ -115,8 +115,9 @@ function Receiver()
 			else
 				x, y = term.getCursor()
 				term.setCursor(1, B - 5)
-				if message == 'R' then 
-					print("[Server] Restarting...")
+				if message == 'R' or message == 'C' then 
+					if message == 'R' then print("[Server] Restarting...")
+					else print("[Server] Shut down...") end
 					thread.kill(sHandler)
 					term.setCursorBlink(false)
 					os.sleep(3) 
