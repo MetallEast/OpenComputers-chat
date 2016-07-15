@@ -29,6 +29,3 @@ The client computer must have at least one wireless card.<br/>
 When the chat starts the first thing checked connection to the server<br/>
 After logging the client receives primary level port from the server. (chat port)<br/>
 "exit" command used to exit from chat.<br/>
-
-
-<b>Remark</b>: <i>serverAddress</i> variable must match with proxy on the server side.
