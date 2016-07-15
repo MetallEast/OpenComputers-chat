@@ -9,7 +9,7 @@ local serialization = require("serialization")
 local text = require("text")
 local term = require("term")
 local unicode = require("unicode")
-local modem = component.proxy("7bd34253-9437-47f8-8ab7-c2f14956ddd9")
+local modem = component.modem
 local primaryPort = math.random(512, 1024)
 local restart = false
 
@@ -31,6 +31,8 @@ function ModemSettings()
 end
 
 function Manager()
+	local users = io.open("users", "ab")
+	users:close(users)
 	local _, _, address, port, _, message
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
