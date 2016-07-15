@@ -13,7 +13,7 @@ local unicode = require("unicode")
 local modem = component.modem
 local gpu = component.gpu
 
-local serverAddress = "7bd34253-9437-47f8-8ab7-c2f14956ddd9"
+local serverAddress
 local primaryPort
 local myMessage
 local A, B
@@ -168,9 +168,10 @@ function CheckConnection()
 	term.write("Соединение...")
 	modem.open(254)
 	for try = 1, 3 do
-		modem.send(serverAddress, 254, 1)
+		modem.broadcast(254, 1)
 		local _, _, address, _, _, _ = event.pull(3, "modem_message")
-		if address == serverAddress then 
+		if address ~= nil then
+			serverAddress = address
 			serverOn = true
 			break
 		end
