@@ -2,10 +2,6 @@
 -- Topic: http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/
 -- Code:  http://pastebin.com/E0SzJcCx
 
---преданье
---старины
---глубокой
-
 local thread = require("thread")
 local computer = require("computer")
 local component = require("component")
@@ -189,9 +185,9 @@ end
 
 modem.setStrength(5000)
 if CheckConnection() == 1 then
-	local choiceResult = Choice()
-	if choiceResult ~= 0 then 
-		primaryPort = choiceResult
+	local choice = Choice()	
+	if choice > 0 then 
+		primaryPort = choice
 		modem.open(primaryPort)
 		modem.open(253)
 		A, B = gpu.getResolution()
@@ -202,7 +198,8 @@ if CheckConnection() == 1 then
 		sHandler = thread.create(Sender)
 		thread.waitForAll()
 		modem.close()
-	end
+	elseif choice == -1 then 
+		print("Вы забанены на сервере") end
 else
 	print("Сервер недоступен")
 	event.pull("key_up")
