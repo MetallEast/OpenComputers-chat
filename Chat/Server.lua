@@ -1,5 +1,4 @@
 -- thread.lua code is written by Zer0Galaxy
--- Topic: http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/
 -- Code:  http://pastebin.com/E0SzJcCx
 
 local thread = require("thread")
@@ -18,6 +17,14 @@ users:close(users)
 local banlist = io.open("banlist", "ab")
 banlist:close(banlist)
 
+
+function CheckLogFile()
+	local fs = require("filesystem")
+	if fs.size("log") > 500000 then
+		fs.rename("log", "log_old")
+		print("New log file created. Old log file saved as log_old")
+	else print("Log file size — " .. fs.size("log") .. " bytes") end
+end
 
 function Log(address, port, message)
 	local log = io.open("log", "ab")
@@ -48,7 +55,7 @@ function AddToBanList(nickname)
 		file:seek("end")
 		file:write(string.format("%s\n", nickname))
 		file:close(file)
-		print(nickname .. " забанен")
+		print(nickname .. " was banned")
 	end
 end
 
@@ -73,8 +80,8 @@ function Manager()
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
 		if 	port == primaryPort then 
-			if isFlooder == true and flooder == address then address = "flooder"
-			else PrimaryLevel(message) print(4) end
+			if isFlooder == true and flooder == address then address = "flood"
+			else PrimaryLevel(message) end
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
 		elseif	port == 254 then modem.send(address, 254, 1) end
@@ -197,6 +204,7 @@ function Administration()
 end
 
 
+CheckLogFile()
 thread.init()			
 ModemSettings()
 thread.create(PingUsers)
