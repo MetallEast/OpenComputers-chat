@@ -103,18 +103,21 @@ end
 
 function Receiver()
 	local x, y		
-	local _, _, address, port, _, message
+	local _, _, address, port, _, message, mesHeight
+	local chatWidth = math.floor(A * 0.75)
+	local onlineLeftBorder = math.floor(A * 0.8)
+	local online = {}
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
 		if address == serverAddress then
 			address = nil
 			if port == 253 then
-				if message == 'P' then modem.send(serverAddress, 253, 1)
-				else online = message end
+				if message == 'P' then modem.send(serverAddress, 253, name)	-- 1
+				else online = serialization.unserialize(message) end
 			else
 				x, y = term.getCursor()
-				term.setCursor(1, B - 5)
-				if message == 'R' or message == 'C' then 
+				if message == 'R' or message == 'C' then
+					term.setCursor(1, B - 5)
 					if message == 'R' then print("[Server] Restarting...")
 					else print("[Server] Shutting down...") end
 					thread.kill(sHandler)
@@ -123,15 +126,29 @@ function Receiver()
 					term.clear()
 					break
 				else
-					print(text.trim(message))
-					term.setCursor(A, B)
-					term.write(' ', true)
-					gpu.copy(1, B - 2, A, 3, 0, 1)
-					term.setCursor(1, B - 3)
-					term.clearLine()
-					term.setCursor(1, B - 2)
-					term.clearLine()
-					term.write("Online: " .. online)
+					mesHeight = math.floor(unicode.len(message) / chatWidth) + 1
+					for i=1, mesHeight, 1 do
+						term.setCursor(A, B)
+						term.write(' ', true)
+					end
+					term.setCursor(1, B - 3 - mesHeight)
+					message = text.trim(message)
+					while true do
+						if unicode.len(message) < chatWidth then print(message) break end
+						print(unicode.sub(message, 1, chatWidth))
+						message = unicode.sub(message, chatWidth)
+					end
+					gpu.copy(1, B - 2, A, 3, 0, mesHeight)
+					
+					term.setCursor(onlineLeftBorder, 1) term.write("--------------")
+					term.setCursor(onlineLeftBorder, 2) term.write("--- ONLINE ---")
+					term.setCursor(onlineLeftBorder, 3) term.write("--------------")
+					for i=1,#online,1 do
+						term.setCursor(onlineLeftBorder, i+3) 
+						term.write("             ")
+						term.setCursor(onlineLeftBorder, i+3) 
+						term.write(online[i])
+					end
 					term.setCursor(x, B - 1)
 					if message ~= myMessage then computer.beep(1000, 0.1) end
 				end
