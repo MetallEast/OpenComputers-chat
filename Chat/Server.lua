@@ -2,10 +2,6 @@
 -- Topic: http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/
 -- Code:  http://pastebin.com/E0SzJcCx
 
---Дела 
---двно
---минувших дней...
-
 local thread = require("thread")
 local component = require("component")
 local event = require("event")
@@ -17,12 +13,43 @@ local modem = component.modem
 local primaryPort = math.random(512, 1024)
 local restart = false
 
+local users = io.open("users", "ab")
+users:close(users)
+local banlist = io.open("banlist", "ab")
+banlist:close(banlist)
+
+
 function Log(address, port, message)
 	local log = io.open("log", "ab")
 	io.input(log)
 	log:seek("end")	
 	log:write(address .. ':' .. port .. '\n' .. message .. '\n')
 	log:close(log)
+end
+
+function CheckBanList(nickname)
+	local line
+	local file = io.open("banlist", "rb")
+	io.output(file)
+	file:seek("set")
+	while true do
+		line = file:read()
+		if nickname == line then return 0 end	
+		if line == nil then return 1 end 		
+	end
+	file:close(file)	
+end
+
+function AddToBanList(nickname)
+	if CheckBanList(nickname) == 1 then
+		local line
+		local file = io.open("banlist", "ab")
+		io.input(file)
+		file:seek("end")
+		file:write(string.format("%s\n", nickname))
+		file:close(file)
+		print(nickname .. " забанен")
+	end
 end
 
 function ModemSettings()
@@ -34,18 +61,37 @@ function ModemSettings()
 	modem.setStrength(5000)
 end
 
+local count, isFlooder, flooder = 0, false, nil
+function FloodReset()
+	count = 0
+	isFlooder = false
+	flooder = nil
+end
+
 function Manager()
-	local users = io.open("users", "ab")
-	users:close(users)
-	local _, _, address, port, _, message
+	local _, _, address, port, _, message, lastaddress
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
-		if 		port == primaryPort then PrimaryLevel(message)
+		if 	port == primaryPort then 
+			if isFlooder == true and flooder == address then address = "flooder"
+			else PrimaryLevel(message) print(4) end
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
 		elseif	port == 254 then modem.send(address, 254, 1) end
 		Log(address, port, message)
-		print(address, port, message)
+		
+		-- Anti-flood
+		if lastaddress == address then
+			count = count + 1 
+			if count > 3 then 
+				event.timer(10, FloodReset)
+				isFlooder = true
+				flooder = lastaddress
+			end
+		else 
+			lastaddress = address
+			count = 0
+		end
 	end
 end
 
@@ -103,14 +149,16 @@ function RegistrationLevel(address, message)
 end
 
 function AuthenticationLevel(address, message)
-	local line
 	local user = serialization.unserialize(message)
+	local line
 	local file = io.open("users", "rb")
 	io.output(file)
 	file:seek("set")
 	while true do
 		line = file:read()
 		if user[1] == line then
+			if CheckBanList(user[1]) == 0 then 
+				modem.send(address, 256, -1) break end -- user banned (-1)
 			line = file:read()
 			if user[2] == line then 				
 				modem.send(address, 256, primaryPort)	
@@ -142,11 +190,13 @@ function Administration()
 		if command == "restart" then restart = true
 			modem.broadcast(primaryPort, 'R') break end
 		if command == "close" then 
-			modem.broadcast(primaryPort, 'C') break
+			modem.broadcast(primaryPort, 'C') break end
+		if unicode.sub(command, 1, 4) == "ban " then AddToBanList(unicode.sub(command, 5))
 		else modem.broadcast(primaryPort, string.format("[Server] %s", command)) end 
 	end
 end
-	
+
+
 thread.init()			
 ModemSettings()
 thread.create(PingUsers)
