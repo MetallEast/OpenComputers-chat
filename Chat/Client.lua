@@ -1,5 +1,4 @@
 -- thread.lua code is written by Zer0Galaxy
--- Topic: http://computercraft.ru/topic/634-esche-odin-podkhod-k-mnogopotochnosti-v-opencomputers/
 -- Code:  http://pastebin.com/E0SzJcCx
 
 local thread = require("thread")
@@ -117,7 +116,7 @@ function Receiver()
 				term.setCursor(1, B - 5)
 				if message == 'R' or message == 'C' then 
 					if message == 'R' then print("[Server] Restarting...")
-					else print("[Server] Shut down...") end
+					else print("[Server] Shutting down...") end
 					thread.kill(sHandler)
 					term.setCursorBlink(false)
 					os.sleep(3) 
