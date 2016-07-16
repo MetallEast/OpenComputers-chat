@@ -55,7 +55,7 @@ function AddToBanList(nickname)
 		file:seek("end")
 		file:write(string.format("%s\n", nickname))
 		file:close(file)
-		print(nickname .. " was banned")
+		modem.broadcast(primaryPort, nickname .. " was banned")
 	end
 end
 
@@ -76,7 +76,8 @@ function FloodReset()
 end
 
 function Manager()
-	local _, _, address, port, _, message, lastaddress
+	local _, _, address, port, _, message
+	local lastaddress, nickname, mute
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
 		if 	port == primaryPort then 
@@ -88,12 +89,15 @@ function Manager()
 		Log(address, port, message)
 		
 		-- Anti-flood
-		if lastaddress == address then
+		if lastaddress == address and port == primaryPort then
 			count = count + 1 
-			if count > 3 then 
+			if count > 5 then 
 				event.timer(10, FloodReset)
 				isFlooder = true
 				flooder = lastaddress
+				nickname = string.sub(message, 1, string.find(message, ":") - 1)
+				mute = "[Server] " .. nickname .. " muted for 10 seconds"
+				modem.broadcast(primaryPort, mute)
 			end
 		else 
 			lastaddress = address
@@ -104,17 +108,18 @@ end
 
 function PingUsers()
 	while true do
-		local online = 0
-		local _, _, address, port, _, _
-		event.pull(20, "waiting")
+		local online = {}
+		local _, _, address, port, _, username, packet
+		event.pull(30, "waiting")
 		modem.broadcast(253, 'P')
 		while true do
-			_, _, address, port, _, _ = event.pull(3, "modem_message")
+			_, _, address, port, _, username = event.pull(3, "modem_message")
 			if port == nil then break end
-			if port == 253 then online = online + 1 end
+			if port == 253 then table.insert(online, username) end
 		end
-		if online == 0 then online = 1 end
-		modem.broadcast(253, online)
+		table.sort(online)
+		packet = serialization.serialize(online)
+		modem.broadcast(253, packet)
 	end
 end	
 
