@@ -21,7 +21,7 @@ function Log(address, port, message)
 	local log = io.open("log", "ab")
 	io.input(log)
 	log:seek("end")	
-	log:write('\n' .. address .. ':' .. port .. '\n' .. message)
+	log:write(address .. ':' .. port .. '\n' .. message .. '\n')
 	log:close(log)
 end
 
@@ -45,6 +45,7 @@ function Manager()
 		elseif	port == 255 then RegistrationLevel(address, message)
 		elseif	port == 254 then modem.send(address, 254, 1) end
 		Log(address, port, message)
+		print(address, port, message)
 	end
 end
 
@@ -52,7 +53,7 @@ function PingUsers()
 	while true do
 		local online = 0
 		local _, _, address, port, _, _
-		event.pull(17, "waiting")
+		event.pull(20, "waiting")
 		modem.broadcast(253, 'P')
 		while true do
 			_, _, address, port, _, _ = event.pull(3, "modem_message")
