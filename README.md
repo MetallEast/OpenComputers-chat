@@ -21,7 +21,7 @@ Everything else is at your discretion.<br/>
 <i>restart</i> - forced restart.<br/>
 <i>close</i> - сlose server immediately.<br/>
 <i>[message]</i> - broadcast message with tag [Server].<br/>
-<i>ban [nickname] - ban by nickname (row in banlist).<br/>
+<i>ban [nickname]</i> - ban by nickname (row in banlist).<br/>
 
 <h3>Client<br/></h3>
 
