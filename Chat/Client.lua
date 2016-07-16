@@ -139,7 +139,6 @@ function Receiver()
 						message = unicode.sub(message, chatWidth)
 					end
 					gpu.copy(1, B - 2, A, 3, 0, mesHeight)
-					
 					term.setCursor(onlineLeftBorder, 1) term.write("--------------")
 					term.setCursor(onlineLeftBorder, 2) term.write("--- ONLINE ---")
 					term.setCursor(onlineLeftBorder, 3) term.write("--------------")
@@ -149,6 +148,8 @@ function Receiver()
 						term.setCursor(onlineLeftBorder, i+3) 
 						term.write(online[i])
 					end
+					term.setCursor(x, B - 3) term.clearLine()
+					term.setCursor(x, B - 2) term.clearLine()
 					term.setCursor(x, B - 1)
 					if message ~= myMessage then computer.beep(1000, 0.1) end
 				end
