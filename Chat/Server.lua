@@ -18,7 +18,7 @@ local banlist = io.open("banlist", "ab")
 banlist:close(banlist)
 
 
-function CheckLogFile()
+local function CheckLogFile()
 	local fs = require("filesystem")
 	if fs.size("log") > 500000 then
 		fs.rename("log", "log_old")
@@ -26,7 +26,7 @@ function CheckLogFile()
 	else print("Log file size — " .. fs.size("log") .. " bytes") end
 end
 
-function Log(address, port, message)
+local function Log(address, port, message)
 	local log = io.open("log", "ab")
 	io.input(log)
 	log:seek("end")	
@@ -34,7 +34,7 @@ function Log(address, port, message)
 	log:close(log)
 end
 
-function CheckBanList(nickname)
+local function CheckBanList(nickname)
 	local line
 	local file = io.open("banlist", "rb")
 	io.output(file)
@@ -47,7 +47,7 @@ function CheckBanList(nickname)
 	file:close(file)	
 end
 
-function AddToBanList(nickname)
+local function AddToBanList(nickname)
 	if CheckBanList(nickname) == 1 then
 		local line
 		local file = io.open("banlist", "ab")
@@ -59,7 +59,7 @@ function AddToBanList(nickname)
 	end
 end
 
-function ModemSettings()
+local function ModemSettings()
 	modem.open(253)
 	modem.open(254)
 	modem.open(255) 
@@ -69,13 +69,13 @@ function ModemSettings()
 end
 
 local count, isFlooder, flooder = 0, false, nil
-function FloodReset()
+local function FloodReset()
 	count = 0
 	isFlooder = false
 	flooder = nil
 end
 
-function Manager()
+local function Manager()
 	local _, _, address, port, _, message
 	local lastaddress, nickname, mute
 	while true do
@@ -106,7 +106,7 @@ function Manager()
 	end
 end
 
-function PingUsers()
+local function PingUsers()
 	while true do
 		local online = {}
 		local _, _, address, port, _, username, packet
@@ -123,7 +123,7 @@ function PingUsers()
 	end
 end	
 
-function RegistrationLevel(address, message)
+local function RegistrationLevel(address, message)
 	local user = serialization.unserialize(message)
 	if 	unicode.len(user[1]) < 3 or unicode.len(user[1]) > 15  or
 		unicode.len(user[2]) < 3 or unicode.len(user[2]) > 10  then
@@ -160,7 +160,7 @@ function RegistrationLevel(address, message)
 	end
 end
 
-function AuthenticationLevel(address, message)
+local function AuthenticationLevel(address, message)
 	local user = serialization.unserialize(message)
 	local line
 	local file = io.open("users", "rb")
@@ -186,7 +186,7 @@ function AuthenticationLevel(address, message)
 	file:close(file)
 end
 
-function PrimaryLevel(message)
+local function PrimaryLevel(message)
 	local check, nicklen, mlen
 	check = text.trim(message)
 	nicklen = string.find(check, ':')
@@ -194,7 +194,7 @@ function PrimaryLevel(message)
 	if mlen > 1 then modem.broadcast(primaryPort, message) end
 end
 	
-function Administration()
+local function Administration()
 	local command 
 	while true do
 		command = term.read()

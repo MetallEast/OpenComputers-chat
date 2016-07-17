@@ -20,7 +20,7 @@ local name
 local online = 1
 local sHandler, rHandler
 
-function Registration()
+local function Registration()
 	local _, _, address, _, _, message
 	local user = {}
 	term.clear()
@@ -52,7 +52,7 @@ function Registration()
 	term.clear()
 end
 
-function Authentication()
+local function Authentication()
 	term.write("Имя пользователя: ")
 	local nickname = text.trim(term.read())
 	term.write("Пароль: ")
@@ -80,7 +80,7 @@ function Authentication()
 	end
 end
 
-function Choice()
+local function Choice()
 	local _,_,_,choice
 	local authResult
 	while true do
@@ -101,7 +101,7 @@ function Choice()
 	return 0
 end
 
-function Receiver()
+local function Receiver()
 	local x, y		
 	local _, _, address, port, _, message, mesHeight
 	local chatWidth = math.floor(A * 0.75)
@@ -158,7 +158,7 @@ function Receiver()
 	end
 end
 
-function Sender()
+local function Sender()
 	local result
 	local history = {}
 	while true do 
@@ -179,7 +179,7 @@ function Sender()
 	end
 end
 
-function CheckConnection()
+local function CheckConnection()
 	local serverOn = false
 	term.clear()
 	term.write("Соединение...")
