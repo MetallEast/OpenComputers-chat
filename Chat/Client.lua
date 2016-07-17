@@ -148,18 +148,21 @@ local function Receiver()
 					end
 					gpu.copy(1, B - 2, A, 3, 0, mesHeight)		
 					-- online list
-					gpu.fill(onlineLeftBorder, 1, onlineWidth, 1, "—")
-					gpu.fill(onlineLeftBorder, 2, onlineWidth, 1, " ")
-					gpu.fill(onlineLeftBorder, 3, onlineWidth, 1, "—")
-					term.setCursor(onlineCenter - 4, 2) term.write(" ONLINE ")					
+					gpu.setBackground(0x008000)
+					gpu.fill(onlineLeftBorder, 1, onlineWidth, 3, " ")
+					term.setCursor(onlineCenter - 3, 2) term.write("ONLINE")	
+					gpu.setForeground(0x000000)
+					gpu.setBackground(0xffffff)
+					gpu.fill(onlineLeftBorder, 4, onlineWidth, B - 7, " ")
 					for i=1,#online,1 do
 						term.setCursor(onlineLeftBorder, i+3) 
-						term.write("             ")
 						term.setCursor(onlineLeftBorder, i+3) 
 						term.write(online[i])
 					end
-					term.setCursor(x, B - 3) term.clearLine()
+					gpu.setForeground(0xffffff)
+					gpu.setBackground(0x000000)
 					-- input field
+					term.setCursor(x, B - 3) term.clearLine()
 					gpu.fill(1, B, A, 1, "—")
 					gpu.fill(1, B - 2, A, 1, "—")
 					-- setting cursor to start position
@@ -228,8 +231,6 @@ local function CheckConnection()
 end
 
 
-gpu.setForeground(0x000000)
-gpu.setBackground(0xFFFFFF)
 if CheckConnection() == 1 then
 	local choice = Choice()	
 	if choice > 0 then 
