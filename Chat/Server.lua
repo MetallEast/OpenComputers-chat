@@ -12,21 +12,23 @@ local modem = component.modem
 local primaryPort = math.random(512, 1024)
 local restart = false
 
-local users = io.open("users", "ab")
-users:close(users)
-local banlist = io.open("banlist", "ab")
-banlist:close(banlist)
 
-
-local function CheckLogFile()
+function InitialiseFiles()
 	local fs = require("filesystem")
-	if fs.size("log") > 500000 then
-		fs.rename("log", "log_old")
+	local shell = require("shell")
+	shell.setWorkingDirectory("/chat/")
+	local curDir = shell.getWorkingDirectory()
+	local users = io.open(curDir .. "users", "ab")
+	users:close(users)
+	local banlist = io.open(curDir .. "banlist", "ab")
+	banlist:close(banlist)
+	if fs.size(curDir .. "log") > 500000 then
+		fs.rename(curDir .. "log", curDir .. "log_old")
 		print("New log file created. Old log file saved as log_old")
-	else print("Log file size — " .. fs.size("log") .. " bytes") end
+	else print("Log file size — " .. fs.size(curDir .. "log") .. " bytes") end
 end
 
-local function Log(address, port, message)
+function Log(address, port, message)
 	local log = io.open("log", "ab")
 	io.input(log)
 	log:seek("end")	
@@ -34,7 +36,7 @@ local function Log(address, port, message)
 	log:close(log)
 end
 
-local function CheckBanList(nickname)
+function CheckBanList(nickname)
 	local line
 	local file = io.open("banlist", "rb")
 	io.output(file)
@@ -47,7 +49,7 @@ local function CheckBanList(nickname)
 	file:close(file)	
 end
 
-local function AddToBanList(nickname)
+function AddToBanList(nickname)
 	if CheckBanList(nickname) == 1 then
 		local line
 		local file = io.open("banlist", "ab")
@@ -59,7 +61,7 @@ local function AddToBanList(nickname)
 	end
 end
 
-local function ModemSettings()
+function ModemSettings()
 	modem.open(253)
 	modem.open(254)
 	modem.open(255) 
@@ -68,20 +70,20 @@ local function ModemSettings()
 	modem.setStrength(5000)
 end
 
-local count, isFlooder, flooder = 0, false, nil
-local function FloodReset()
-	count = 0
+local count, isFlooder, flooder = 1, false, nil
+function FloodReset()
+	count = 1
 	isFlooder = false
 	flooder = nil
 end
 
-local function Manager()
+function Manager()
 	local _, _, address, port, _, message
 	local lastaddress, nickname, mute
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
 		if 	port == primaryPort then 
-			if isFlooder == true and flooder == address then address = "flood"
+			if isFlooder == true and flooder == address then goto continue
 			else PrimaryLevel(message) end
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
@@ -91,7 +93,7 @@ local function Manager()
 		-- Anti-flood
 		if lastaddress == address and port == primaryPort then
 			count = count + 1 
-			if count > 5 then 
+			if count > 3 then 
 				event.timer(10, FloodReset)
 				isFlooder = true
 				flooder = lastaddress
@@ -103,10 +105,11 @@ local function Manager()
 			lastaddress = address
 			count = 0
 		end
+		::continue::
 	end
 end
 
-local function PingUsers()
+function PingUsers()
 	while true do
 		local online = {}
 		local _, _, address, port, _, username, packet
@@ -123,7 +126,7 @@ local function PingUsers()
 	end
 end	
 
-local function RegistrationLevel(address, message)
+function RegistrationLevel(address, message)
 	local user = serialization.unserialize(message)
 	if 	unicode.len(user[1]) < 3 or unicode.len(user[1]) > 15  or
 		unicode.len(user[2]) < 3 or unicode.len(user[2]) > 10  then
@@ -160,7 +163,7 @@ local function RegistrationLevel(address, message)
 	end
 end
 
-local function AuthenticationLevel(address, message)
+function AuthenticationLevel(address, message)
 	local user = serialization.unserialize(message)
 	local line
 	local file = io.open("users", "rb")
@@ -186,15 +189,16 @@ local function AuthenticationLevel(address, message)
 	file:close(file)
 end
 
-local function PrimaryLevel(message)
+function PrimaryLevel(message)
 	local check, nicklen, mlen
 	check = text.trim(message)
 	nicklen = string.find(check, ':')
 	mlen = unicode.len(message) - nicklen - 2
-	if mlen > 1 then modem.broadcast(primaryPort, message) end
+	if mlen > 0 and mlen < 256 
+		then modem.broadcast(primaryPort, message) end
 end
 	
-local function Administration()
+function Administration()
 	local command 
 	while true do
 		command = term.read()
@@ -209,7 +213,7 @@ local function Administration()
 end
 
 
-CheckLogFile()
+InitialiseFiles()
 thread.init()			
 ModemSettings()
 thread.create(PingUsers)
