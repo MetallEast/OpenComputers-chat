@@ -4,6 +4,7 @@
 Server type: Parallel<br />
 Consists of three levels.<br />
 Each level is broadcasting only in its own separate port.<br/>
+The server must be set at least wireless card.<br/>
 
 1. Registration Level.    Registration of new users is going on here.<br/>
 2. Authentication Level.  Registered users login here.<br/>
@@ -12,10 +13,6 @@ Each level is broadcasting only in its own separate port.<br/>
 <i><b>Note</b>: User names and passwords stored in a "users" file.</i><br/>
 <i><b>Note</b>: Primary level has a random port each new uptime cycle.</i><br/>
 <i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side</i><br/>
-
-**Configuration**<br/>
-The server must be set at least wireless card.<br/>
-Everything else is at your discretion.<br/>
 
 <ins>Server commands</ins><br/>
 <i>restart</i> - forced restart.<br/>
