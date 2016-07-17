@@ -9,15 +9,14 @@ local serialization = require("serialization")
 local text = require("text")
 local term = require("term")
 local unicode = require("unicode")
-local modem = component.modem
 local gpu = component.gpu
+local modem
 
 local serverAddress
 local primaryPort
 local myMessage
 local A, B
 local name
-local online = 1
 local sHandler, rHandler
 
 local function Registration()
@@ -105,43 +104,54 @@ local function Receiver()
 	local x, y		
 	local _, _, address, port, _, message, mesHeight
 	local chatWidth = math.floor(A * 0.75)
-	local onlineLeftBorder = math.floor(A * 0.8)
+	local onlineLeftBorder = math.floor(A * 0.8) - 1
+	local onlineWidth = math.floor(A * 0.2) - 1
+	local onlineCenter = math.floor(A * 0.9) - 1
 	local online = {}
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
 		if address == serverAddress then
 			address = nil
 			if port == 253 then
-				if message == 'P' then modem.send(serverAddress, 253, name)	-- 1
+				if message == 'P' then modem.send(serverAddress, 253, name)
 				else online = serialization.unserialize(message) end
 			else
 				x, y = term.getCursor()
 				if message == 'R' or message == 'C' then
-					term.setCursor(1, B - 5)
-					if message == 'R' then print("[Server] Restarting...")
-					else print("[Server] Shutting down...") end
+					term.setCursor(1, B - 3)
+					if message == 'R' then print(" [Server] Restarting...")
+					else print(" [Server] Shutting down...") end
 					thread.kill(sHandler)
 					term.setCursorBlink(false)
 					os.sleep(3) 
 					term.clear()
 					break
 				else
+					-- clear input textbox
+					gpu.fill(1, B, A, 1, " ")
+					gpu.fill(1, B - 2, A, 1, " ")
+					-- move chat up
 					mesHeight = math.floor(unicode.len(message) / chatWidth) + 1
 					for i=1, mesHeight, 1 do
 						term.setCursor(A, B)
 						term.write(' ', true)
 					end
+					gpu.copy(1, B - mesHeight - 1, A, 0, 0, mesHeight)
+					term.setCursor(1, B - mesHeight - 1) term.clearLine()
 					term.setCursor(1, B - 3 - mesHeight)
+					-- print message
 					message = text.trim(message)
 					while true do
-						if unicode.len(message) < chatWidth then print(message) break end
-						print(unicode.sub(message, 1, chatWidth))
-						message = unicode.sub(message, chatWidth)
+						if unicode.len(message) < chatWidth then print(' ' .. message) break end
+						print(' ' .. unicode.sub(message, 1, chatWidth))
+						message = unicode.sub(message, chatWidth + 1)
 					end
-					gpu.copy(1, B - 2, A, 3, 0, mesHeight)
-					term.setCursor(onlineLeftBorder, 1) term.write("--------------")
-					term.setCursor(onlineLeftBorder, 2) term.write("--- ONLINE ---")
-					term.setCursor(onlineLeftBorder, 3) term.write("--------------")
+					gpu.copy(1, B - 2, A, 3, 0, mesHeight)		
+					-- online list
+					gpu.fill(onlineLeftBorder, 1, onlineWidth, 1, "—")
+					gpu.fill(onlineLeftBorder, 2, onlineWidth, 1, " ")
+					gpu.fill(onlineLeftBorder, 3, onlineWidth, 1, "—")
+					term.setCursor(onlineCenter - 4, 2) term.write(" ONLINE ")					
 					for i=1,#online,1 do
 						term.setCursor(onlineLeftBorder, i+3) 
 						term.write("             ")
@@ -149,7 +159,10 @@ local function Receiver()
 						term.write(online[i])
 					end
 					term.setCursor(x, B - 3) term.clearLine()
-					term.setCursor(x, B - 2) term.clearLine()
+					-- input field
+					gpu.fill(1, B, A, 1, "—")
+					gpu.fill(1, B - 2, A, 1, "—")
+					-- setting cursor to start position
 					term.setCursor(x, B - 1)
 					if message ~= myMessage then computer.beep(1000, 0.1) end
 				end
@@ -162,6 +175,7 @@ local function Sender()
 	local result
 	local history = {}
 	while true do 
+		term.setCursor(2, B - 1) -- one space shift
 		myMessage = term.read(history, false)
 		result = text.trim(myMessage)
 		result = text.detab(result, 1)
@@ -170,7 +184,7 @@ local function Sender()
 			thread.kill(rHandler)
 			break
 		end
-		if unicode.len(result) > 1 then 
+		if unicode.len(result) > 0  and unicode.len(result) < 256 then 
 			myMessage = name .. ": " .. myMessage
 			modem.send(serverAddress, primaryPort, myMessage)
 		end
@@ -179,10 +193,22 @@ local function Sender()
 	end
 end
 
+local function CheckModem()
+	if component.isAvailable("modem") == false then 
+		return 0
+	else 
+		modem = component.modem
+		modem.setStrength(5000)
+		return 1 
+	end
+end
+
 local function CheckConnection()
+	if CheckModem() == 0 then 
+		print("Не найдена плата беспроводной сети") return 0 end
 	local serverOn = false
 	term.clear()
-	term.write("Соединение...")
+	term.write("Соединение")
 	modem.open(254)
 	for try = 1, 3 do
 		modem.broadcast(254, 1)
@@ -192,15 +218,18 @@ local function CheckConnection()
 			serverOn = true
 			break
 		end
+		term.write(".")
 	end
 	modem.close(254)
 	term.clear()
 	if serverOn == true then return 1 end
+	print("Сервер недоступен")
 	return 0
 end
 
 
-modem.setStrength(5000)
+gpu.setForeground(0x000000)
+gpu.setBackground(0xFFFFFF)
 if CheckConnection() == 1 then
 	local choice = Choice()	
 	if choice > 0 then 
@@ -218,7 +247,7 @@ if CheckConnection() == 1 then
 	elseif choice == -1 then 
 		print("Вы забанены на сервере") end
 else
-	print("Сервер недоступен")
+	os.sleep(0.5)
 	event.pull("key_up")
 	term.clear()
 end
