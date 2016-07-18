@@ -1,5 +1,5 @@
 -- thread.lua code is written by Zer0Galaxy
--- Code:  http://pastebin.com/E0SzJcCx
+-- Code: http://pastebin.com/E0SzJcCx
 
 local thread = require("thread")
 local component = require("component")
@@ -12,16 +12,13 @@ local modem = component.modem
 local primaryPort = math.random(512, 1024)
 local restart = false
 
-
 function InitialiseFiles()
 	local fs = require("filesystem")
 	local shell = require("shell")
 	shell.setWorkingDirectory("/chat/")
 	local curDir = shell.getWorkingDirectory()
-	local users = io.open(curDir .. "users", "ab")
-	users:close(users)
-	local banlist = io.open(curDir .. "banlist", "ab")
-	banlist:close(banlist)
+	local users = io.open(curDir .. "users", "ab")     users:close(users)
+	local banlist = io.open(curDir .. "banlist", "ab") banlist:close(banlist)
 	if fs.size(curDir .. "log") > 500000 then
 		fs.rename(curDir .. "log", curDir .. "log_old")
 		print("New log file created. Old log file saved as log_old")
@@ -51,7 +48,6 @@ end
 
 function AddToBanList(nickname)
 	if CheckBanList(nickname) == 1 then
-		local line
 		local file = io.open("banlist", "ab")
 		io.input(file)
 		file:seek("end")
@@ -72,9 +68,7 @@ end
 
 local count, isFlooder, flooder = 1, false, nil
 function FloodReset()
-	count = 1
-	isFlooder = false
-	flooder = nil
+	count, isFlooder, flooder = 1, false, nil
 end
 
 function Manager()
@@ -88,15 +82,13 @@ function Manager()
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
 		elseif	port == 254 then modem.send(address, 254, 1) end
-		Log(address, port, message)
-		
+		Log(address, port, message)	
 		-- Anti-flood
 		if lastaddress == address and port == primaryPort then
 			count = count + 1 
 			if count > 3 then 
 				event.timer(10, FloodReset)
-				isFlooder = true
-				flooder = lastaddress
+				isFlooder, flooder = true, lastaddress
 				nickname = string.sub(message, 1, string.find(message, ":") - 1)
 				mute = "[Server] " .. nickname .. " muted for 10 seconds"
 				modem.broadcast(primaryPort, mute)
@@ -173,7 +165,7 @@ function AuthenticationLevel(address, message)
 		line = file:read()
 		if user[1] == line then
 			if CheckBanList(user[1]) == 0 then 
-				modem.send(address, 256, -1) break end -- user banned (-1)
+				modem.send(address, 256, -1) break end
 			line = file:read()
 			if user[2] == line then 				
 				modem.send(address, 256, primaryPort)	
@@ -211,7 +203,6 @@ function Administration()
 		else modem.broadcast(primaryPort, string.format("[Server] %s", command)) end 
 	end
 end
-
 
 InitialiseFiles()
 thread.init()			
