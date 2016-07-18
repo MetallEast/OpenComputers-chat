@@ -1,5 +1,5 @@
 -- thread.lua code is written by Zer0Galaxy
--- Code:  http://pastebin.com/E0SzJcCx
+-- Code: http://pastebin.com/E0SzJcCx
 
 local thread = require("thread")
 local computer = require("computer")
@@ -10,31 +10,23 @@ local text = require("text")
 local term = require("term")
 local unicode = require("unicode")
 local gpu = component.gpu
-local modem
 
-local serverAddress
-local primaryPort
-local myMessage
+local modem, serverAddress, primaryPort
+local name, myMessage
 local A, B
-local name
 local sHandler, rHandler
 
 local function Registration()
-	local _, _, address, _, _, message
-	local user = {}
+	local nickname, password, repetition, _, _, address, _, _, message
 	term.clear()
-	term.write("Имя пользователя: ")
-	local nickname = text.trim(term.read())
-	term.write("Пароль: ")
-	local password = text.trim(term.read(nil, true, nil, "*"))
-	term.write("Повторите пароль: ")
-	local repetition = text.trim(term.read(nil, true, nil, "*"))
+	term.write("Имя пользователя: ") nickname = text.trim(term.read())
+	term.write("Пароль: ")           password = text.trim(term.read(nil, true, nil, "*"))
+	term.write("Повторите пароль: ") repetition = text.trim(term.read(nil, true, nil, "*"))
 	if password ~= repetition then 
 		term.write("\nЗначения полей 'Пароль' и 'Повтор пароля' должны совпадать")
 		os.sleep(0.5)
 	else 
-		user[1] = nickname
-		user[2] = password
+		local user = {[1] = nickname, [2] = password}
 		local packet = serialization.serialize(user)
 		modem.open(255)
 		modem.send(serverAddress, 255, packet)
@@ -47,22 +39,18 @@ local function Registration()
 			print("Регистрация завершена")
 		else print(message) end
 	end
-	event.pull("key_up")
+	event.pull("key_up") 
 	term.clear()
 end
 
 local function Authentication()
-	term.write("Имя пользователя: ")
-	local nickname = text.trim(term.read())
-	term.write("Пароль: ")
-	local password = text.trim(term.read(nil, true, nil, "*"))
-	local user = {}
-	user[1] = nickname
-	user[2] = password
+	local nickname, password, _, _, address, _, _, message
+	term.write("Имя пользователя: ") nickname = text.trim(term.read())
+	term.write("Пароль: ") password = text.trim(term.read(nil, true, nil, "*"))
+	local user = {[1] = nickname, [2] = password}
 	local packet = serialization.serialize(user)
 	modem.open(256)
 	modem.send(serverAddress, 256, packet)
-	local _, _, address, _, _, message
 	while address ~= serverAddress do
 		_, _, address, _, _, message = event.pull("modem_message")
 	end
@@ -80,19 +68,13 @@ local function Authentication()
 end
 
 local function Choice()
-	local _,_,_,choice
-	local authResult
 	while true do
-		print("1. Войти в чат")
-		print("2. Регистрация")
-		print("3. Выход\n")
-		_, _, _, choice = event.pull("key_up") 
+		print("1. Войти в чат\n2. Регистрация\n3. Выход\n")
+		local _, _, _, choice = event.pull("key_up") 
 		term.clear()
 		if choice == 2 then 
-			authResult = Authentication() 
-			if authResult ~= 0 then
-				return authResult		
-			end
+			local authResult = Authentication() 
+			if authResult ~= 0 then return authResult end
 		end
 		if choice == 3 then Registration() end
 		if choice == 4 then break end
@@ -115,8 +97,7 @@ local function Receiver()
 			if port == 253 then
 				if message == 'P' then modem.send(serverAddress, 253, name)
 				else online = serialization.unserialize(message) end
-			else
-				x, y = term.getCursor()
+			else	   
 				if message == 'R' or message == 'C' then
 					term.setCursor(1, B - 3)
 					if message == 'R' then print(" [Server] Restarting...")
@@ -127,17 +108,16 @@ local function Receiver()
 					term.clear()
 					break
 				else
-					-- clear input textbox
-					gpu.fill(1, B, A, 1, " ")
-					gpu.fill(1, B - 2, A, 1, " ")
+					x, y = term.getCursor()
+					local unsent = ''
+					for i=2, x, 1 do unsent = unsent .. gpu.get(i, y) end
+					gpu.fill(1, B - 2, A, 3, " ") -- clear input textbox
 					-- move chat up
 					mesHeight = math.floor(unicode.len(message) / chatWidth) + 1
 					for i=1, mesHeight, 1 do
 						term.setCursor(A, B)
 						term.write(' ', true)
 					end
-					gpu.copy(1, B - mesHeight - 1, A, 0, 0, mesHeight)
-					term.setCursor(1, B - mesHeight - 1) term.clearLine()
 					term.setCursor(1, B - 3 - mesHeight)
 					-- print message
 					message = text.trim(message)
@@ -145,9 +125,9 @@ local function Receiver()
 						if unicode.len(message) < chatWidth then print(' ' .. message) break end
 						print(' ' .. unicode.sub(message, 1, chatWidth))
 						message = unicode.sub(message, chatWidth + 1)
-					end
-					gpu.copy(1, B - 2, A, 3, 0, mesHeight)		
+					end		
 					-- online list
+					gpu.setForeground(0xffffff)
 					gpu.setBackground(0x008000)
 					gpu.fill(onlineLeftBorder, 1, onlineWidth, 3, " ")
 					term.setCursor(onlineCenter - 3, 2) term.write("ONLINE")	
@@ -155,17 +135,16 @@ local function Receiver()
 					gpu.setBackground(0xffffff)
 					gpu.fill(onlineLeftBorder, 4, onlineWidth, B - 7, " ")
 					for i=1,#online,1 do
-						term.setCursor(onlineLeftBorder, i+3) 
-						term.setCursor(onlineLeftBorder, i+3) 
-						term.write(online[i])
+						term.setCursor(onlineLeftBorder, i+4) 
+						term.write(' ' .. online[i])
 					end
 					gpu.setForeground(0xffffff)
 					gpu.setBackground(0x000000)
 					-- input field
-					term.setCursor(x, B - 3) term.clearLine()
 					gpu.fill(1, B, A, 1, "—")
 					gpu.fill(1, B - 2, A, 1, "—")
 					-- setting cursor to start position
+					term.setCursor(2, B - 1) print(unsent)
 					term.setCursor(x, B - 1)
 					if message ~= myMessage then computer.beep(1000, 0.1) end
 				end
@@ -178,7 +157,7 @@ local function Sender()
 	local result
 	local history = {}
 	while true do 
-		term.setCursor(2, B - 1) -- one space shift
+		term.setCursor(2, B - 1) 
 		myMessage = term.read(history, false)
 		result = text.trim(myMessage)
 		result = text.detab(result, 1)
@@ -197,13 +176,10 @@ local function Sender()
 end
 
 local function CheckModem()
-	if component.isAvailable("modem") == false then 
-		return 0
-	else 
-		modem = component.modem
-		modem.setStrength(5000)
-		return 1 
-	end
+	if component.isAvailable("modem") == false then return 0 end
+	modem = component.modem
+	modem.setStrength(5000)
+	return 1
 end
 
 local function CheckConnection()
@@ -229,7 +205,6 @@ local function CheckConnection()
 	print("Сервер недоступен")
 	return 0
 end
-
 
 if CheckConnection() == 1 then
 	local choice = Choice()	
