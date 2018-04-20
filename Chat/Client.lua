@@ -19,11 +19,11 @@ local sHandler, rHandler
 local function Registration()
 	local nickname, password, repetition, _, _, address, _, _, message
 	term.clear()
-	term.write("Имя пользователя: ") nickname = text.trim(term.read())
-	term.write("Пароль: ")           password = text.trim(term.read(nil, true, nil, "*"))
-	term.write("Повторите пароль: ") repetition = text.trim(term.read(nil, true, nil, "*"))
+	term.write("User: ") nickname = text.trim(term.read())
+	term.write("Password: ")           password = text.trim(term.read(nil, true, nil, "*"))
+	term.write("Repeat password: ") repetition = text.trim(term.read(nil, true, nil, "*"))
 	if password ~= repetition then 
-		term.write("\nЗначения полей 'Пароль' и 'Повтор пароля' должны совпадать")
+		term.write("\nThe passwords do not match")
 		os.sleep(0.5)
 	else 
 		local user = {[1] = nickname, [2] = password}
@@ -36,7 +36,7 @@ local function Registration()
 		modem.close(255)
 		if type(message) == "number" then
 			term.clear()
-			print("Регистрация завершена")
+			print("Registration complete")
 		else print(message) end
 	end
 	event.pull("key_up") 
@@ -45,8 +45,8 @@ end
 
 local function Authentication()
 	local nickname, password, _, _, address, _, _, message
-	term.write("Имя пользователя: ") nickname = text.trim(term.read())
-	term.write("Пароль: ") password = text.trim(term.read(nil, true, nil, "*"))
+	term.write("User: ") nickname = text.trim(term.read())
+	term.write("Password: ") password = text.trim(term.read(nil, true, nil, "*"))
 	local user = {[1] = nickname, [2] = password}
 	local packet = serialization.serialize(user)
 	modem.open(256)
@@ -69,7 +69,7 @@ end
 
 local function Choice()
 	while true do
-		print("1. Войти в чат\n2. Регистрация\n3. Выход\n")
+		print("1. Chat\n2. Registration\n3. Exit\n")
 		local _, _, _, choice = event.pull("key_up") 
 		term.clear()
 		if choice == 2 then 
@@ -184,10 +184,10 @@ end
 
 local function CheckConnection()
 	if CheckModem() == 0 then 
-		print("Не найдена плата беспроводной сети") return 0 end
+		print("Wireless card not found") return 0 end
 	local serverOn = false
 	term.clear()
-	term.write("Соединение")
+	term.write("Connecting")
 	modem.open(254)
 	for try = 1, 3 do
 		modem.broadcast(254, 1)
@@ -202,7 +202,7 @@ local function CheckConnection()
 	modem.close(254)
 	term.clear()
 	if serverOn == true then return 1 end
-	print("Сервер недоступен")
+	print("The server is not available")
 	return 0
 end
 
@@ -221,7 +221,7 @@ if CheckConnection() == 1 then
 		thread.waitForAll()
 		modem.close()
 	elseif choice == -1 then 
-		print("Вы забанены на сервере") end
+		print("You're banned on this server") end
 else
 	os.sleep(0.5)
 	event.pull("key_up")
