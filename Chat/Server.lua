@@ -122,9 +122,9 @@ function RegistrationLevel(address, message)
 	local user = serialization.unserialize(message)
 	if 	unicode.len(user[1]) < 3 or unicode.len(user[1]) > 15  or
 		unicode.len(user[2]) < 3 or unicode.len(user[2]) > 10  then
-		modem.send(address, 255, "Имя должно быть от 3 до 15 символов\nПароль должен быть от 3 до 10 символов")
+		modem.send(address, 255, "Name length must be 3 to 15 characters\nPassword length must be 3 to 15 characters")
 	else if string.find(user[1], "[%p%c%d]") ~= nil then
-		modem.send(address, 255, "Имя содержит запрещенные символы")
+		modem.send(address, 255, "Name contains incorrect characters")
 		else
 			local line
 			local file = io.open("users", "rb")
@@ -132,12 +132,12 @@ function RegistrationLevel(address, message)
 			while true do
 				line = file:read()
 				if user[1] == line then
-					modem.send(address, 255, "Пользователь с таким именем уже существует")
+					modem.send(address, 255, "User already exist")
 					break end		
 				file:read()
 				line = file:read()
 				if line == address then 
-					modem.send(address, 255, "С Вашего адреса уже зарегестрирован пользователь")
+					modem.send(address, 255, "User already registered from this address")
 					break end
 				if line == nil then
 					file:close(file)
@@ -169,12 +169,12 @@ function AuthenticationLevel(address, message)
 			line = file:read()
 			if user[2] == line then 				
 				modem.send(address, 256, primaryPort)	
-				modem.broadcast(primaryPort, user[1] .. " присоединился к чату")
-			else modem.send(address, 256, "Неверный пароль") end
+				modem.broadcast(primaryPort, user[1] .. " joined to chat")
+			else modem.send(address, 256, "Incorrect password") end
 			break
 		else file:read() file:read() end
 		if line == nil then 	
-			modem.send(address, 256, "Пользователя с таким именем не существует")
+			modem.send(address, 256, "Username does not exist")
 			break
 		end 		
 	end
