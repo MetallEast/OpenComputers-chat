@@ -6,6 +6,7 @@ local text = require("text")
 local term = require("term")
 local unicode = require("unicode")
 local modem = component.modem
+
 local primaryPort = math.random(512, 1024)
 local restart = false
 
@@ -14,8 +15,6 @@ local curDir = shell.getWorkingDirectory()
 
 function InitialiseFiles()
 	local fs = require("filesystem")
-	-- local shell = require("shell")
-	-- local curDir = shell.getWorkingDirectory()
 	local users = io.open(curDir .. "/users", "ab")     users:close(users)
 	local banlist = io.open(curDir .. "/banlist", "ab") banlist:close(banlist)
 	if fs.size(curDir .. "/log") > 500000 then
@@ -75,11 +74,7 @@ function Manager()
 	local _, _, address, port, _, message
 	local lastaddress, nickname, mute
 	while true do
-		print('cycle started' .. primaryPort)
-		_, _, address, port, _, message = event.pull("modem_message", nil)
-		print(address)
-		print(port)
-		print(message)
+		_, _, address, port, _, message = event.pull('modem_message')
 		if 	port == primaryPort then 
 			if isFlooder == true and flooder == address then goto continue
 			else PrimaryLevel(message) end
