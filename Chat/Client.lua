@@ -1,6 +1,3 @@
--- thread.lua code is written by Zer0Galaxy
--- Code: http://pastebin.com/E0SzJcCx
-
 local thread = require("thread")
 local computer = require("computer")
 local component = require("component")
@@ -13,15 +10,16 @@ local gpu = component.gpu
 
 local modem, serverAddress, primaryPort
 local name, myMessage
-local A, B
+local W, H
 local sHandler, rHandler
 
 local function Registration()
 	local nickname, password, repetition, _, _, address, _, _, message
 	term.clear()
 	term.write("User: ") nickname = text.trim(term.read())
-	term.write("Password: ")           password = text.trim(term.read(nil, true, nil, "*"))
-	term.write("Repeat password: ") repetition = text.trim(term.read(nil, true, nil, "*"))
+	-- term.write("Password: ")           password = text.trim(term.read(nil, true, nil, "*"))
+	term.write("Password: ")        password = text.trim(term.read())
+	term.write("\nRepeat password: ") repetition = text.trim(term.read())
 	if password ~= repetition then 
 		term.write("\nThe passwords do not match")
 		os.sleep(0.5)
@@ -85,10 +83,10 @@ end
 local function Receiver()
 	local x, y		
 	local _, _, address, port, _, message, mesHeight
-	local chatWidth = math.floor(A * 0.75)
-	local onlineLeftBorder = math.floor(A * 0.8) - 1
-	local onlineWidth = math.floor(A * 0.2) - 1
-	local onlineCenter = math.floor(A * 0.9) - 1
+	local chatWidth = math.floor(W * 0.75)
+	local onlineLeftBorder = math.floor(W * 0.8) - 1
+	local onlineWidth = math.floor(W * 0.2) - 1
+	local onlineCenter = math.floor(W * 0.9) - 1
 	local online = {}
 	while true do
 		_, _, address, port, _, message = event.pull("modem_message")
@@ -99,10 +97,10 @@ local function Receiver()
 				else online = serialization.unserialize(message) end
 			else	   
 				if message == 'R' or message == 'C' then
-					term.setCursor(1, B - 3)
+					term.setCursor(1, H - 3)
 					if message == 'R' then print(" [Server] Restarting...")
 					else print(" [Server] Shutting down...") end
-					thread.kill(sHandler)
+					sHandler:kill()
 					term.setCursorBlink(false)
 					os.sleep(3) 
 					term.clear()
@@ -111,14 +109,14 @@ local function Receiver()
 					x, y = term.getCursor()
 					local unsent = ''
 					for i=2, x, 1 do unsent = unsent .. gpu.get(i, y) end
-					gpu.fill(1, B - 2, A, 3, " ") -- clear input textbox
+					gpu.fill(1, H - 2, W, 3, ' ') -- clear input textbox
 					-- move chat up
 					mesHeight = math.floor(unicode.len(message) / chatWidth) + 1
 					for i=1, mesHeight, 1 do
-						term.setCursor(A, B)
-						term.write(' ', true)
+						term.setCursor(W, H)
+						term.write('\n', true)
 					end
-					term.setCursor(1, B - 3 - mesHeight)
+					term.setCursor(1, H - 3 - mesHeight)
 					-- print message
 					message = text.trim(message)
 					while true do
@@ -129,8 +127,8 @@ local function Receiver()
 					-- online list
 					gpu.setForeground(0xffffff)
 					gpu.setBackground(0x008000)
-					gpu.fill(onlineLeftBorder, 1, onlineWidth, 3, " ")
-					term.setCursor(onlineCenter - 3, 2) term.write("ONLINE")	
+					gpu.fill(onlineLeftBorder, 1, onlineWidth, 3, ' ')
+					term.setCursor(onlineCenter - 3, 2) term.write('ONLINE')	
 					gpu.setForeground(0x000000)
 					gpu.setBackground(0xffffff)
 					gpu.fill(onlineLeftBorder, 4, onlineWidth, B - 7, " ")
@@ -141,11 +139,11 @@ local function Receiver()
 					gpu.setForeground(0xffffff)
 					gpu.setBackground(0x000000)
 					-- input field
-					gpu.fill(1, B, A, 1, "—")
-					gpu.fill(1, B - 2, A, 1, "—")
+					gpu.fill(1, H, W, 1, '—')
+					gpu.fill(1, H - 2, W, 1, '—')
 					-- setting cursor to start position
-					term.setCursor(2, B - 1) print(unsent)
-					term.setCursor(x, B - 1)
+					term.setCursor(2, H - 1) print(unsent)
+					term.setCursor(x, H - 1)
 					if message ~= myMessage then computer.beep(1000, 0.1) end
 				end
 			end
@@ -157,13 +155,13 @@ local function Sender()
 	local result
 	local history = {}
 	while true do 
-		term.setCursor(2, B - 1) 
+		term.setCursor(2, H - 1) 
 		myMessage = term.read(history, false)
 		result = text.trim(myMessage)
 		result = text.detab(result, 1)
 		if result == "exit" then 
 			term.clear()
-			thread.kill(rHandler)
+			rHandler:kill()
 			break
 		end
 		if unicode.len(result) > 0  and unicode.len(result) < 256 then 
@@ -178,7 +176,8 @@ end
 local function CheckModem()
 	if component.isAvailable("modem") == false then return 0 end
 	modem = component.modem
-	modem.setStrength(5000)
+	-- if is wireless
+	-- modem.setStrength(50)
 	return 1
 end
 
@@ -212,13 +211,12 @@ if CheckConnection() == 1 then
 		primaryPort = choice
 		modem.open(primaryPort)
 		modem.open(253)
-		A, B = gpu.getResolution()
+		W, H = gpu.getResolution()
 		term.clear()
-		term.setCursor(1, B - 1)
-		thread.init()
+		term.setCursor(1, H - 1)
 		rHandler = thread.create(Receiver)
 		sHandler = thread.create(Sender)
-		thread.waitForAll()
+		thread.waitForAll({rHandler, sHandler})
 		modem.close()
 	elseif choice == -1 then 
 		print("You're banned on this server") end
