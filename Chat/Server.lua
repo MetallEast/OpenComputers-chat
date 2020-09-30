@@ -1,6 +1,3 @@
--- thread.lua code is written by Zer0Galaxy
--- Code: http://pastebin.com/E0SzJcCx
-
 local thread = require("thread")
 local component = require("component")
 local event = require("event")
@@ -12,17 +9,19 @@ local modem = component.modem
 local primaryPort = math.random(512, 1024)
 local restart = false
 
+local shell = require("shell")
+local curDir = shell.getWorkingDirectory()
+
 function InitialiseFiles()
 	local fs = require("filesystem")
-	local shell = require("shell")
-	shell.setWorkingDirectory("/chat/")
-	local curDir = shell.getWorkingDirectory()
-	local users = io.open(curDir .. "users", "ab")     users:close(users)
-	local banlist = io.open(curDir .. "banlist", "ab") banlist:close(banlist)
-	if fs.size(curDir .. "log") > 500000 then
-		fs.rename(curDir .. "log", curDir .. "log_old")
+	-- local shell = require("shell")
+	-- local curDir = shell.getWorkingDirectory()
+	local users = io.open(curDir .. "/users", "ab")     users:close(users)
+	local banlist = io.open(curDir .. "/banlist", "ab") banlist:close(banlist)
+	if fs.size(curDir .. "/log") > 500000 then
+		fs.rename(curDir .. "/log", curDir .. "/log_old")
 		print("New log file created. Old log file saved as log_old")
-	else print("Log file size — " .. fs.size(curDir .. "log") .. " bytes") end
+	else print("Log file size — " .. fs.size(curDir .. "/log") .. " bytes") end
 end
 
 function Log(address, port, message)
@@ -63,7 +62,8 @@ function ModemSettings()
 	modem.open(255) 
 	modem.open(256)
 	modem.open(primaryPort)
-	modem.setStrength(5000)
+	-- if is wireless
+	-- modem.setStrength(50)
 end
 
 local count, isFlooder, flooder = 1, false, nil
@@ -75,18 +75,23 @@ function Manager()
 	local _, _, address, port, _, message
 	local lastaddress, nickname, mute
 	while true do
-		_, _, address, port, _, message = event.pull("modem_message")
+		print('cycle started' .. primaryPort)
+		_, _, address, port, _, message = event.pull("modem_message", nil)
+		print(address)
+		print(port)
+		print(message)
 		if 	port == primaryPort then 
 			if isFlooder == true and flooder == address then goto continue
 			else PrimaryLevel(message) end
 		elseif	port == 256 then AuthenticationLevel(address, message)
 		elseif	port == 255 then RegistrationLevel(address, message)
-		elseif	port == 254 then modem.send(address, 254, 1) end
+		elseif	port == 254 then modem.send(address, 254, 1)
+		end
 		Log(address, port, message)	
 		-- Anti-flood
 		if lastaddress == address and port == primaryPort then
 			count = count + 1 
-			if count > 3 then 
+			if count > 3 then
 				event.timer(10, FloodReset)
 				isFlooder, flooder = true, lastaddress
 				nickname = string.sub(message, 1, string.find(message, ":") - 1)
@@ -127,7 +132,7 @@ function RegistrationLevel(address, message)
 		modem.send(address, 255, "Name contains incorrect characters")
 		else
 			local line
-			local file = io.open("users", "rb")
+			local file = io.open(curDir .. "/users", "rb")
 			io.output(file)
 			while true do
 				line = file:read()
@@ -141,7 +146,7 @@ function RegistrationLevel(address, message)
 					break end
 				if line == nil then
 					file:close(file)
-					file = io.open("users", "ab")
+					file = io.open(curDir .. "/users", "ab")
 					io.input(file)
 					local c = file:seek("end")
 					if c ~= 0 then file:write(string.format("\n%s\n%s\n%s", user[1], user[2], address))
@@ -158,7 +163,7 @@ end
 function AuthenticationLevel(address, message)
 	local user = serialization.unserialize(message)
 	local line
-	local file = io.open("users", "rb")
+	local file = io.open(curDir .. "/users", "rb")
 	io.output(file)
 	file:seek("set")
 	while true do
@@ -204,13 +209,16 @@ function Administration()
 	end
 end
 
-InitialiseFiles()
-thread.init()			
+
+InitialiseFiles()		
 ModemSettings()
-thread.create(PingUsers)
-thread.create(Manager)
+
+local t1 = thread.create(PingUsers)
+local t2 = thread.create(Manager)
 Administration()
-thread.killAll()
-thread.waitForAll()
+
+t1:kill()
+t2:kill()
+thread.waitForAll({t1, t2})
 modem.close()
 if restart == true then os.execute("reboot") end
