@@ -16,12 +16,12 @@ local sHandler, rHandler
 local function Registration()
 	local nickname, password, repetition, _, _, address, _, _, message
 	term.clear()
-	term.write("User: ") nickname = text.trim(term.read())
-	-- term.write("Password: ")           password = text.trim(term.read(nil, true, nil, "*"))
-	term.write("Password: ")        password = text.trim(term.read())
-	term.write("\nRepeat password: ") repetition = text.trim(term.read())
+	term.write('User: ') nickname = text.trim(term.read())
+	term.write('\nPassword: ') password = text.trim(term.read(nil, true, nil, '*'))
+	term.write('\nRepeat Password: ') repetition = text.trim(term.read(nil, true, nil, '*'))
+
 	if password ~= repetition then 
-		term.write("\nThe passwords do not match")
+		term.write('\nThe passwords do not match')
 		os.sleep(0.5)
 	else 
 		local user = {[1] = nickname, [2] = password}
@@ -32,9 +32,9 @@ local function Registration()
 			_, _, address, _, _, message = event.pull("modem_message")
 		end
 		modem.close(255)
-		if type(message) == "number" then
+		if type(message) == 'number' then
 			term.clear()
-			print("Registration complete")
+			print('Registration complete')
 		else print(message) end
 	end
 	event.pull("key_up") 
@@ -43,8 +43,8 @@ end
 
 local function Authentication()
 	local nickname, password, _, _, address, _, _, message
-	term.write("User: ") nickname = text.trim(term.read())
-	term.write("Password: ") password = text.trim(term.read(nil, true, nil, "*"))
+	term.write('User: ') nickname = text.trim(term.read())
+	term.write('Password: ') password = text.trim(term.read(nil, true, nil, "*"))
 	local user = {[1] = nickname, [2] = password}
 	local packet = serialization.serialize(user)
 	modem.open(256)
@@ -53,7 +53,7 @@ local function Authentication()
 		_, _, address, _, _, message = event.pull("modem_message")
 	end
 	modem.close(256)
-	if type(message) == "number" then 
+	if type(message) == 'number' then 
 		name = nickname
 		return message 
 	else 
@@ -67,7 +67,7 @@ end
 
 local function Choice()
 	while true do
-		print("1. Chat\n2. Registration\n3. Exit\n")
+		print('1. Chat\n2. Registration\n3. Exit\n')
 		local _, _, _, choice = event.pull("key_up") 
 		term.clear()
 		if choice == 2 then 
@@ -98,8 +98,8 @@ local function Receiver()
 			else	   
 				if message == 'R' or message == 'C' then
 					term.setCursor(1, H - 3)
-					if message == 'R' then print(" [Server] Restarting...")
-					else print(" [Server] Shutting down...") end
+					if message == 'R' then print(' [Server] Restarting...')
+					else print(' [Server] Shutting down...') end
 					sHandler:kill()
 					term.setCursorBlink(false)
 					os.sleep(3) 
@@ -165,7 +165,7 @@ local function Sender()
 			break
 		end
 		if unicode.len(result) > 0  and unicode.len(result) < 256 then 
-			myMessage = name .. ": " .. myMessage
+			myMessage = name .. ': ' .. myMessage
 			modem.send(serverAddress, primaryPort, myMessage)
 		end
 		term.clearLine()
@@ -176,17 +176,16 @@ end
 local function CheckModem()
 	if component.isAvailable("modem") == false then return 0 end
 	modem = component.modem
-	-- if is wireless
-	-- modem.setStrength(50)
+	if modem.isWireless() then modem.setStrength(1000) end
 	return 1
 end
 
 local function CheckConnection()
 	if CheckModem() == 0 then 
-		print("Wireless card not found") return 0 end
+		print('Network component not found') return 0 end
 	local serverOn = false
 	term.clear()
-	term.write("Connecting")
+	term.write('Connecting')
 	modem.open(254)
 	for try = 1, 3 do
 		modem.broadcast(254, 1)
@@ -201,7 +200,7 @@ local function CheckConnection()
 	modem.close(254)
 	term.clear()
 	if serverOn == true then return 1 end
-	print("The server is not available")
+	print('The server is not available')
 	return 0
 end
 
@@ -219,7 +218,7 @@ if CheckConnection() == 1 then
 		thread.waitForAll({rHandler, sHandler})
 		modem.close()
 	elseif choice == -1 then 
-		print("You're banned on this server") end
+		print('You are banned on this server') end
 else
 	os.sleep(0.5)
 	event.pull("key_up")
