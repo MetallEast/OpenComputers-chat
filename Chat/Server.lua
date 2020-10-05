@@ -61,8 +61,7 @@ function ModemSettings()
 	modem.open(255) 
 	modem.open(256)
 	modem.open(primaryPort)
-	-- if is wireless
-	-- modem.setStrength(50)
+	if modem.isWireless() then modem.setStrength(1000) end
 end
 
 local count, isFlooder, flooder = 1, false, nil
