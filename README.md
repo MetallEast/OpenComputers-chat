@@ -6,6 +6,7 @@ The server and client must contain at least a wireless network card or network c
 <h3>Server<br /></h3>
 Server type: Parallel<br />
 Consists of three levels.<br />
+
 Each level is broadcasting only in its own separate port.<br/>
 <li/> 1. Registration Level.    Registration of new users is going on here.<br/>
 <li/> 2. Authentication Level.  Registered users login here.<br/>
@@ -24,7 +25,7 @@ Each level is broadcasting only in its own separate port.<br/>
 Configuration example:
 ```lua
 home> edit server
-* Paster Server.lua code here
+* Paste Server.lua code here
 * Ctrl-S
 * Ctrl-W
 home> server
@@ -40,7 +41,7 @@ After logging the client receives primary level port from the server. (chat port
 Configuration example:
 ```lua
 home> edit client
-* Paster Client.lua code here
+* Paste Client.lua code here
 * Ctrl-S
 * Ctrl-W
 home> client
