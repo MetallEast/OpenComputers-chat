@@ -131,7 +131,7 @@ local function Receiver()
 					term.setCursor(onlineCenter - 3, 2) term.write('ONLINE')	
 					gpu.setForeground(0x000000)
 					gpu.setBackground(0xffffff)
-					gpu.fill(onlineLeftBorder, 4, onlineWidth, B - 7, " ")
+					gpu.fill(onlineLeftBorder, 4, onlineWidth, #online + 2, " ")
 					for i=1,#online,1 do
 						term.setCursor(onlineLeftBorder, i+4) 
 						term.write(' ' .. online[i])
