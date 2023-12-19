@@ -47,5 +47,3 @@ home> edit client
 home> client
 ```
 <hr/>
-<h3>Known issue</h3>
-Do not work as expected since OC 1.6
