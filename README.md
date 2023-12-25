@@ -1,6 +1,6 @@
 # OpenComputers-chat
 
-The server and client must contain at least a wireless network card or network card. That's all.
+Server and client must contain at least one wireless network card or network card. That's all.
 <br/>Both client and server can be represented as you want — computer, server or even robot.
 
 <h3>Server<br /></h3>
@@ -17,10 +17,10 @@ Each level is broadcasting only in its own separate port.<br/>
 <i><b>Recommended</b>: Register the "Server.lua" script in autorun.lua on the server side</i><br/>
 
 <ins>Server commands</ins><br/>
-<i>restart</i> - forced restart.<br/>
+<i>restart</i> - force restart.<br/>
 <i>close</i> - сlose server immediately.<br/>
 <i>[message]</i> - broadcast message with tag [Server].<br/>
-<i>ban [nickname]</i> - ban by nickname (row in banlist).<br/>
+<i>ban [nickname]</i> - ban by nickname (create a row in banlist).<br/>
 
 Configuration example:
 ```lua
@@ -34,9 +34,9 @@ If you saw _"Log file size — 0 bytes"_ then server configure is done.
 
 <h3>Client<br/></h3>
 
-When the chat starts the first thing checked connection to the server<br/>
-After logging the client receives primary level port from the server. (chat port)<br/>
-"exit" command used to exit from chat.<br/>
+On chat start client check connection to server<br/>
+After success login client receive primary level port from the server (chat port)<br/>
+Use "exit" to exit from current chat<br/>
 
 Configuration example:
 ```lua
